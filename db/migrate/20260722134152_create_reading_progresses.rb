@@ -13,6 +13,6 @@ class CreateReadingProgresses < ActiveRecord::Migration[8.1]
     end
 
     add_check_constraint :reading_progresses, "percentage >= 0 AND percentage <= 100", name: "reading_progresses_percentage_check"
-    add_index :reading_progresses, [:user_id, :book_id], unique: true
+    add_index :reading_progresses, [ :user_id, :book_id ], unique: true
   end
 end

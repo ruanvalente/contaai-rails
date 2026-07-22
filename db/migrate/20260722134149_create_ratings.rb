@@ -10,6 +10,6 @@ class CreateRatings < ActiveRecord::Migration[8.1]
     end
 
     add_check_constraint :ratings, "score >= 1 AND score <= 5", name: "ratings_score_check"
-    add_index :ratings, [:book_id, :user_id], unique: true
+    add_index :ratings, [ :book_id, :user_id ], unique: true
   end
 end

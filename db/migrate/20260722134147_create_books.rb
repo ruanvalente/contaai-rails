@@ -18,7 +18,7 @@ class CreateBooks < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :books, [:user_id, :status]
+    add_index :books, [ :user_id, :status ]
     add_index :books, :category
     add_index :books, :status
   end

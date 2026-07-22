@@ -8,6 +8,6 @@ class CreateAuthorFollows < ActiveRecord::Migration[8.1]
     end
 
     add_check_constraint :author_follows, "follower_id != author_id", name: "author_follows_no_self_follow"
-    add_index :author_follows, [:follower_id, :author_id], unique: true
+    add_index :author_follows, [ :follower_id, :author_id ], unique: true
   end
 end
