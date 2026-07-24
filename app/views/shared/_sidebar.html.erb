@@ -1,0 +1,136 @@
+<%
+navigation_items = [
+  {
+    label: "Início",
+    icon: "home",
+    path: dashboard_path
+  },
+  {
+    label: "Explorar",
+    icon: "search",
+    path: explore_path
+  },
+  {
+    label: "Minha Sessão",
+    icon: "book-open",
+    path: reading_path
+  },
+  {
+    label: "Categorias",
+    icon: "grid",
+    path: categories_path
+  },
+  {
+    label: "Minha Biblioteca",
+    icon: "library",
+    path: library_path
+  },
+  {
+    label: "Downloads",
+    icon: "download",
+    path: downloads_path
+  },
+  {
+    label: "Favoritos",
+    icon: "heart",
+    path: favorites_path
+  }
+]
+%>
+
+<button
+  data-drawer-target="sidebar"
+  data-drawer-toggle="sidebar"
+  aria-controls="sidebar"
+  type="button"
+  class="
+    text-sidebar-text
+    bg-transparent
+    box-border
+    border
+    border-transparent
+    hover:bg-sidebar-hover
+    hover:text-sidebar-text-hover
+    focus:ring-4
+    focus:ring-sidebar-hover
+    font-medium
+    leading-5
+    rounded-base
+    ms-3
+    mt-3
+    text-sm
+    p-2
+    focus:outline-none
+    inline-flex
+    sm:hidden
+  "
+>
+  <span class="sr-only">Open sidebar</span>
+  <svg
+    class="w-6 h-6"
+    aria-hidden="true"
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    fill="none"
+    viewBox="0 0 24 24"
+  >
+    <path
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-width="2"
+      d="M5 7h14M5 12h14M5 17h10"
+    />
+  </svg>
+</button>
+
+<aside
+  id="sidebar"
+  class="
+    fixed
+    top-0
+    left-0
+    z-40
+    w-64
+    h-screen
+    transition-transform
+    -translate-x-full
+    sm:translate-x-0
+  "
+  aria-label="Sidebar"
+>
+  <div data-sidebar-target="overlay" class="hidden fixed inset-0 bg-black/50 z-30 sm:hidden"></div>
+  <div
+    class="
+      h-full
+      px-3
+      py-4
+      overflow-y-auto
+      bg-sidebar
+      border-e
+      border-sidebar-hover
+    "
+  >
+    <ul class="space-y-2 font-medium">
+      <% navigation_items.each do |item| %>
+        <% active = current_page?(item[:path]) %>
+        <li>
+          <%= link_to item[:path],
+            class: [
+              "flex items-center px-2 py-1.5 rounded-base group transition-colors duration-200",
+              active ?
+                "bg-sidebar-active text-sidebar-active-text" :
+                "text-sidebar-text hover:bg-sidebar-hover hover:text-sidebar-text-hover"
+            ] do %>
+            <span class="shrink-0 transition duration-75">
+              <%= sidebar_icon(item[:icon]) %>
+            </span>
+            <span class="flex-1 ms-3 whitespace-nowrap">
+              <%= item[:label] %>
+            </span>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+</aside>

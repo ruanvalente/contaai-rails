@@ -1,0 +1,222 @@
+<nav
+  class="
+    fixed
+    top-0
+    left-0
+    right-0
+    lg:left-64
+    z-30
+    bg-header/80
+    backdrop-blur-xl
+    border-b
+    border-header-border/50
+  "
+  role="banner"
+>
+  <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+
+    <!-- Mobile menu button -->
+    <button
+      data-drawer-target="sidebar"
+      data-drawer-toggle="sidebar"
+      aria-controls="sidebar"
+      type="button"
+      class="
+        inline-flex
+        items-center
+        p-2
+        w-10
+        h-10
+        justify-center
+        text-sm
+        text-sidebar-text
+        rounded-lg
+        md:hidden
+        hover:bg-sidebar-hover
+        hover:text-sidebar-text-hover
+        focus:outline-none
+        focus:ring-2
+        focus:ring-sidebar-hover
+      "
+      aria-controls="navbar-user"
+      aria-expanded="false"
+    >
+      <span class="sr-only">Open main menu</span>
+      <svg
+        class="w-6 h-6"
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-width="2"
+          d="M5 7h14M5 12h14M5 17h14"
+        />
+      </svg>
+    </button>
+
+    <!-- Logo -->
+    <%= link_to dashboard_path,
+        class: "flex items-center space-x-3 rtl:space-x-reverse" do %>
+      <div
+        class="
+          h-9
+          w-9
+          rounded-xl
+          flex
+          items-center
+          justify-center
+          bg-primary/20
+          text-primary
+        "
+      >
+        <span class="font-serif font-bold text-lg">C</span>
+      </div>
+      <span
+        class="
+          self-center
+          text-xl
+          font-semibold
+          whitespace-nowrap
+          text-sidebar-text-hover
+          font-serif
+        "
+      >
+        ContaAI
+      </span>
+    <% end %>
+
+    <!-- Right side actions -->
+    <div class="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
+
+      <!-- Notifications -->
+      <button
+        type="button"
+        class="
+          relative
+          p-2.5
+          rounded-lg
+          text-sidebar-text
+          hover:text-sidebar-text-hover
+          hover:bg-sidebar-hover
+          transition
+        "
+        aria-label="Notificações"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+          <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+        </svg>
+        <span
+          class="
+            absolute
+            top-2
+            right-2
+            h-2
+            w-2
+            rounded-full
+            bg-notification-badge
+            ring-2
+            ring-header
+          "
+        ></span>
+      </button>
+
+      <!-- User dropdown -->
+      <button
+        type="button"
+        class="
+          flex
+          text-sm
+          bg-transparent
+          rounded-full
+          md:me-0
+          focus:ring-4
+          focus:ring-sidebar-hover
+        "
+        id="user-menu-button"
+        aria-expanded="false"
+        data-dropdown-toggle="user-dropdown"
+        data-dropdown-placement="bottom-start"
+      >
+        <span class="sr-only">Open user menu</span>
+        <div
+          class="
+            w-8
+            h-8
+            rounded-full
+            bg-gradient-to-br
+            from-primary/80
+            to-primary
+            flex
+            items-center
+            justify-center
+            text-white
+            font-semibold
+            text-sm
+          "
+        >
+          <%= current_user.name&.first&.upcase ||
+              current_user.email&.first&.upcase %>
+        </div>
+      </button>
+
+      <!-- Dropdown menu -->
+      <div
+        class="
+          z-50
+          hidden
+          my-4
+          w-60
+          text-base
+          list-none
+          bg-bg-card
+          divide-y
+          divide-border-light
+          rounded-lg
+          shadow-lg
+          border
+          border-border-light
+        "
+        id="user-dropdown"
+      >
+        <div class="px-4 py-3">
+          <span class="block text-sm text-text-primary font-semibold">
+            <%= current_user.name || "Usuário" %>
+          </span>
+          <span class="block text-sm text-text-muted truncate">
+            <%= current_user.email %>
+          </span>
+        </div>
+        <ul class="py-2" aria-labelledby="user-menu-button">
+          <li>
+            <%= link_to settings_path,
+              class: "block px-4 py-2 text-sm text-text-secondary hover:bg-bg-sec" do %>
+              Configurações da Conta
+            <% end %>
+          </li>
+          <li>
+            <%= link_to destroy_user_session_path,
+              data: { turbo_method: :delete },
+              class: "block px-4 py-2 text-sm text-error hover:bg-red-50" do %>
+              Sair
+            <% end %>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>

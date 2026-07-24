@@ -1,0 +1,203 @@
+<%= render "shared/navbar_public" %>
+
+<!-- Hero Section -->
+<section class="min-h-screen flex items-center justify-center bg-linear-to-br from-bg-main to-bg-sec pt-16">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <div class="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-8">
+      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+      </svg>
+      Plataforma de escrita e leitura
+    </div>
+    <h1 class="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-text-primary leading-tight mb-6">
+      Descubra, leia e<br>compartilhe histórias
+    </h1>
+    <p class="text-text-secondary text-lg sm:text-xl max-w-2xl mx-auto mb-10">
+      Uma plataforma para escritores e leitores que desejam explorar mundos por meio de palavras.
+    </p>
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+      <%= link_to "Comece a escrever", new_user_registration_path, class: "bg-primary hover:bg-primary-dark text-white px-8 py-3.5 rounded-lg font-semibold transition-all duration-200 text-lg hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98]" %>
+      <%= link_to "Explorar livros", "#featured-books", class: "border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-3.5 rounded-lg font-semibold transition-all duration-200 text-lg" %>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Books Section -->
+<section id="featured-books" class="py-20 bg-bg-sec">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-12">
+      <h2 class="font-serif text-3xl sm:text-4xl font-bold text-text-primary mb-4">Obras em Destaque</h2>
+      <p class="text-text-secondary text-lg">Descubra as histórias mais recentes da nossa comunidade</p>
+    </div>
+
+    <% if @featured_books.any? %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% @featured_books.each do |book| %>
+          <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer border border-border-light">
+            <div class="h-48 flex items-center justify-center relative overflow-hidden" style="background-color: <%= book.cover_color %>">
+              <span class="font-serif text-white text-xl font-bold text-center px-4 relative z-10"><%= book.title %></span>
+              <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+            </div>
+            <div class="p-5">
+              <h3 class="font-semibold text-text-primary mb-1 truncate"><%= book.title %></h3>
+              <p class="text-text-secondary text-sm mb-2"><%= book.author_name %></p>
+              <% if book.average_rating > 0 %>
+                <div class="flex items-center gap-1">
+                  <svg class="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                  </svg>
+                  <span class="text-sm text-text-secondary"><%= book.average_rating %></span>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% [
+          { title: "Aventuras do Tempo", color: "#8B7355", author: "Maria Silva" },
+          { title: "Código Secreto", color: "#6B5A42", author: "João Santos" },
+          { title: "Sombras da Noite", color: "#A89070", author: "Ana Costa" },
+          { title: "O Último Capítulo", color: "#C2A47E", author: "Pedro Lima" },
+          { title: "Palavras Perdidas", color: "#5C4033", author: "Lucia Ferreira" },
+          { title: "Horizonte Dourado", color: "#D4BC9A", author: "Carlos Mendes" }
+        ].each do |book| %>
+          <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer border border-border-light">
+            <div class="h-48 flex items-center justify-center relative overflow-hidden" style="background-color: <%= book[:color] %>">
+              <span class="font-serif text-white text-xl font-bold text-center px-4 relative z-10"><%= book[:title] %></span>
+              <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+            </div>
+            <div class="p-5">
+              <h3 class="font-semibold text-text-primary mb-1 truncate"><%= book[:title] %></h3>
+              <p class="text-text-secondary text-sm"><%= book[:author] %></p>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</section>
+
+<!-- Community Section -->
+<section class="py-20 bg-bg-main">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-12">
+      <h2 class="font-serif text-3xl sm:text-4xl font-bold text-text-primary mb-4">Comunidade</h2>
+      <p class="text-text-secondary text-lg">Conecte-se com outros leitores e escritores</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Feature 1 -->
+      <div class="bg-bg-sec p-8 rounded-xl text-center hover:shadow-lg transition-shadow duration-300 border border-border-light">
+        <div class="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg class="w-7 h-7 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-text-primary mb-3">Escreva e publique</h3>
+        <p class="text-text-secondary">Crie suas histórias com nosso editor intuitivo e compartilhe com o mundo.</p>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="bg-bg-sec p-8 rounded-xl text-center hover:shadow-lg transition-shadow duration-300 border border-border-light">
+        <div class="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg class="w-7 h-7 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-text-primary mb-3">Descubra novas histórias</h3>
+        <p class="text-text-secondary">Explore uma vasta coleção de gêneros e encontre sua próxima leitura favorita.</p>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="bg-bg-sec p-8 rounded-xl text-center hover:shadow-lg transition-shadow duration-300 border border-border-light">
+        <div class="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg class="w-7 h-7 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-text-primary mb-3">Conecte-se com autores</h3>
+        <p class="text-text-secondary">Siga seus autores favoritos e acompanhe seus novos lançamentos.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contribute Section -->
+<section class="py-20 bg-bg-sec">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div>
+        <h2 class="font-serif text-3xl sm:text-4xl font-bold text-text-primary mb-6">Contribua</h2>
+        <p class="text-text-secondary text-lg mb-6">
+          Sua voz importa. Escreva histórias que inspiram, emocionam e transformam a vida de milhares de leitores.
+        </p>
+        <ul class="space-y-4 mb-8">
+          <li class="flex items-start gap-3">
+            <div class="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+              <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <span class="text-text-secondary">Publique seus escritos gratuitamente</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <div class="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+              <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <span class="text-text-secondary">Receba feedback da comunidade</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <div class="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+              <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <span class="text-text-secondary">Construa sua audiência de leitores</span>
+          </li>
+        </ul>
+        <%= link_to "Comece agora", new_user_registration_path, class: "bg-primary hover:bg-primary-dark text-white px-8 py-3.5 rounded-lg font-semibold transition-all duration-200 text-lg hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98] inline-block" %>
+      </div>
+      <div class="bg-bg-main rounded-2xl p-8 border border-border">
+        <div class="space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+              <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="h-3 bg-text-primary/10 rounded w-32 mb-1"></div>
+              <div class="h-2 bg-text-primary/5 rounded w-48"></div>
+            </div>
+          </div>
+          <div class="bg-white rounded-lg p-4 border border-border-light">
+            <div class="h-3 bg-text-primary/10 rounded w-full mb-2"></div>
+            <div class="h-3 bg-text-primary/10 rounded w-4/5 mb-2"></div>
+            <div class="h-3 bg-text-primary/10 rounded w-3/5"></div>
+          </div>
+          <div class="flex gap-2">
+            <div class="h-8 bg-primary/10 rounded-full w-20"></div>
+            <div class="h-8 bg-primary/10 rounded-full w-24"></div>
+            <div class="h-8 bg-primary/10 rounded-full w-16"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-20 bg-bg-contrast">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <h2 class="font-serif text-3xl sm:text-4xl font-bold text-white mb-4">Junte-se à comunidade ContaAI</h2>
+    <p class="text-white/70 text-lg mb-8">Crie sua conta gratuita e comece a escrever hoje</p>
+    <%= link_to "Criar minha conta", new_user_registration_path, class: "bg-primary hover:bg-primary-dark text-white px-8 py-3.5 rounded-lg font-semibold transition-all duration-200 text-lg inline-block hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98]" %>
+  </div>
+</section>
+
+<!-- Footer -->
+<%= render "shared/footer" %>

@@ -1,0 +1,47 @@
+<div class="max-w-6xl mx-auto">
+  <div class="mb-8">
+    <h1 class="text-2xl font-serif font-bold text-text-primary mb-2">Categorias</h1>
+    <p class="text-text-secondary">Navegue por categorias.</p>
+  </div>
+
+  <div class="flex flex-wrap gap-2 mb-8">
+    <%= link_to "Todos", categories_path, class: "px-4 py-2 rounded-full text-sm font-medium transition-colors #{@selected_category.blank? ? 'bg-primary text-white' : 'bg-bg-card border border-border text-text-secondary hover:text-primary hover:border-primary'}" %>
+    <% @categories.each do |category| %>
+      <%= link_to category.humanize, categories_path(category: category), class: "px-4 py-2 rounded-full text-sm font-medium transition-colors #{@selected_category == category ? 'bg-primary text-white' : 'bg-bg-card border border-border text-text-secondary hover:text-primary hover:border-primary'}" %>
+    <% end %>
+  </div>
+
+  <% if @books.any? %>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <% @books.each do |book| %>
+        <%= link_to book_path(book), class: "group block" do %>
+          <div class="bg-bg-card rounded-xl border border-border-light shadow-sm overflow-hidden hover:shadow-md transition-all duration-200 group-hover:-translate-y-1">
+            <div class="aspect-[3/4] bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center relative">
+              <% if book.cover_image.attached? %>
+                <%= image_tag book.cover_image.variant(resize_to_fill: [300, 400]), class: "w-full h-full object-cover" %>
+              <% else %>
+                <div class="w-24 h-32 rounded shadow-lg flex items-center justify-center" style="background-color: <%= book.cover_color %>">
+                  <span class="text-white text-lg font-bold"><%= book.title.first(2) %></span>
+                </div>
+              <% end %>
+            </div>
+            <div class="p-4">
+              <h3 class="font-semibold text-text-primary truncate group-hover:text-primary transition-colors"><%= book.title %></h3>
+              <p class="text-sm text-text-secondary truncate"><%= book.author_name %></p>
+              <div class="flex items-center gap-2 mt-2">
+                <span class="text-xs text-text-muted"><%= book.category.humanize %></span>
+                <% if book.average_rating > 0 %>
+                  <span class="text-xs text-warning">★ <%= book.average_rating %></span>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center py-12 bg-bg-card rounded-xl border border-border-light">
+      <p class="text-text-secondary">Nenhum livro encontrado nesta categoria.</p>
+    </div>
+  <% end %>
+</div>

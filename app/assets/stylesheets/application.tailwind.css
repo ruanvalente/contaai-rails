@@ -1,1 +1,44 @@
 @import "tailwindcss";
+@import "flowbite/src/themes/default";
+@plugin "flowbite/plugin";
+@source "../../../node_modules/flowbite";
+
+@theme {
+  --color-primary: #c8a45a;
+  --color-primary-dark: #a88b4e;
+  --color-primary-light: #d4b76e;
+
+  --color-bg-main: #f8f1eb;
+  --color-bg-sec: #f3ebd7;
+  --color-bg-contrast: #1e1e1f;
+  --color-bg-card: #ffffff;
+
+  --color-text-primary: #1e2330;
+  --color-text-secondary: #687280;
+  --color-text-muted: #9ca3af;
+
+  --color-border: #ebddcf;
+  --color-border-light: #f0e6d9;
+
+  --color-success: #059669;
+  --color-error: #dc2626;
+  --color-warning: #d97706;
+
+  --color-sidebar: #34271c;
+  --color-sidebar-hover: #3f3024;
+  --color-sidebar-active: #c8a97d;
+  --color-sidebar-active-text: #ffffff;
+
+  --color-header: #34271c;
+  --color-header-border: #3f3024;
+
+  --color-sidebar-text: #a8a29e;
+  --color-sidebar-text-hover: #f5f5f4;
+  --color-sidebar-text-active: #2c1f1a;
+
+  --color-notification-badge: #f97316;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+  --font-reading: "Cormorant Garamond", ui-serif, Georgia, serif;
+}
