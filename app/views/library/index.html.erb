@@ -1,0 +1,49 @@
+<div class="max-w-6xl mx-auto">
+  <div class="mb-8">
+    <h1 class="text-2xl font-serif font-bold text-text-primary mb-2">Minha Biblioteca</h1>
+    <p class="text-text-secondary">Seu acervo pessoal de leitura.</p>
+  </div>
+
+  <% if @books.any? %>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <% @books.each do |book| %>
+        <%= link_to book_path(book), class: "group block" do %>
+          <div class="bg-bg-card rounded-xl border border-border-light shadow-sm overflow-hidden hover:shadow-md transition-all duration-200 group-hover:-translate-y-1">
+            <div class="aspect-[3/4] bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center relative">
+              <% if book.cover_image.attached? %>
+                <%= image_tag book.cover_image.variant(resize_to_fill: [300, 400]), class: "w-full h-full object-cover" %>
+              <% else %>
+                <div class="w-24 h-32 rounded shadow-lg flex items-center justify-center" style="background-color: <%= book.cover_color %>">
+                  <span class="text-white text-lg font-bold"><%= book.title.first(2) %></span>
+                </div>
+              <% end %>
+            </div>
+            <div class="p-4">
+              <h3 class="font-semibold text-text-primary truncate group-hover:text-primary transition-colors"><%= book.title %></h3>
+              <p class="text-sm text-text-secondary truncate"><%= book.author_name %></p>
+              <div class="flex items-center gap-2 mt-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                  <%= book.published? ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning' %>">
+                  <%= book.published? ? 'Publicado' : 'Rascunho' %>
+                </span>
+                <span class="text-xs text-text-muted"><%= book.category.humanize %></span>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center py-12 bg-bg-card rounded-xl border border-border-light">
+      <div class="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+      </div>
+      <h3 class="text-lg font-semibold text-text-primary mb-2">Nenhum livro na biblioteca</h3>
+      <p class="text-text-secondary mb-4">Crie seu primeiro livro para começar sua biblioteca.</p>
+      <%= link_to new_book_path, class: "inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        Criar Livro
+      <% end %>
+    </div>
+  <% end %>
+</div>

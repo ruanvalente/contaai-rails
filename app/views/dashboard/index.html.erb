@@ -1,0 +1,200 @@
+<div class="space-y-8">
+  <%# Header com saudação e ação rápida %>
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-serif font-bold text-text-primary">Dashboard</h1>
+      <p class="text-text-secondary">Bem-vindo ao seu painel, <%= current_user.name || current_user.email %>.</p>
+    </div>
+    <div>
+      <%= link_to new_book_path, class: "inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        Criar Livro
+      <% end %>
+    </div>
+  </div>
+
+  <%# Estatísticas Pessoais (F-DASH-001) %>
+  <section>
+    <h2 class="text-lg font-semibold text-text-primary mb-4">Suas Estatísticas</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <%# Total de livros %>
+      <div class="bg-bg-card rounded-xl p-6 border border-border-light shadow-sm">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-primary/10 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+          </div>
+          <div>
+            <p class="text-sm text-text-secondary">Total de livros</p>
+            <p class="text-2xl font-bold text-text-primary"><%= @stats[:total_books] %></p>
+          </div>
+        </div>
+      </div>
+
+      <%# Livros publicados %>
+      <div class="bg-bg-card rounded-xl p-6 border border-border-light shadow-sm">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-success/10 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-success"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+          </div>
+          <div>
+            <p class="text-sm text-text-secondary">Livros publicados</p>
+            <p class="text-2xl font-bold text-text-primary"><%= @stats[:published_books] %></p>
+          </div>
+        </div>
+      </div>
+
+      <%# Rascunhos %>
+      <div class="bg-bg-card rounded-xl p-6 border border-border-light shadow-sm">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-warning/10 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-warning"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+          </div>
+          <div>
+            <p class="text-sm text-text-secondary">Rascunhos</p>
+            <p class="text-2xl font-bold text-text-primary"><%= @stats[:drafts] %></p>
+          </div>
+        </div>
+      </div>
+
+      <%# Total de palavras %>
+      <div class="bg-bg-card rounded-xl p-6 border border-border-light shadow-sm">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-primary/10 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
+          </div>
+          <div>
+            <p class="text-sm text-text-secondary">Total de palavras</p>
+            <p class="text-2xl font-bold text-text-primary"><%= number_with_delimiter(@stats[:total_words]) %></p>
+          </div>
+        </div>
+      </div>
+
+      <%# Total de leituras %>
+      <div class="bg-bg-card rounded-xl p-6 border border-border-light shadow-sm">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-success/10 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-success"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div>
+            <p class="text-sm text-text-secondary">Total de leituras</p>
+            <p class="text-2xl font-bold text-text-primary"><%= @stats[:total_readings] %></p>
+          </div>
+        </div>
+      </div>
+
+      <%# Avaliação média %>
+      <div class="bg-bg-card rounded-xl p-6 border border-border-light shadow-sm">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-warning/10 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-warning"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div>
+            <p class="text-sm text-text-secondary">Avaliação média</p>
+            <p class="text-2xl font-bold text-text-primary"><%= @stats[:average_rating] %></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%# Estatísticas da Plataforma (F-DASH-002) %>
+  <section>
+    <h2 class="text-lg font-semibold text-text-primary mb-4">Estatísticas da Plataforma</h2>
+    <div class="bg-bg-card rounded-xl p-6 border border-border-light shadow-sm">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="text-center">
+          <p class="text-3xl font-bold text-primary"><%= @platform_stats[:total_authors] %></p>
+          <p class="text-sm text-text-secondary mt-1">Autores</p>
+        </div>
+        <div class="text-center">
+          <p class="text-3xl font-bold text-primary"><%= @platform_stats[:total_books] %></p>
+          <p class="text-sm text-text-secondary mt-1">Livros Publicados</p>
+        </div>
+        <div class="text-center">
+          <p class="text-3xl font-bold text-primary"><%= @platform_stats[:total_readers] %></p>
+          <p class="text-sm text-text-secondary mt-1">Leitores</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%# Listagem de Livros do Autor (F-DASH-003) %>
+  <section>
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold text-text-primary">Seus Livros</h2>
+      <%= link_to books_path, class: "text-sm text-primary hover:text-primary-dark transition-colors" do %>
+        Ver todos →
+      <% end %>
+    </div>
+
+    <% if @books.any? %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <% @books.first(6).each do |book| %>
+          <div class="bg-bg-card rounded-xl border border-border-light shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+            <%# Capa do livro %>
+            <div class="h-32 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+              <% if book.cover_image.attached? %>
+                <%= image_tag book.cover_image.variant(resize_to_fill: [400, 200]), class: "w-full h-full object-cover" %>
+              <% else %>
+                <div class="w-16 h-20 rounded shadow-sm flex items-center justify-center" style="background-color: <%= book.cover_color %>">
+                  <span class="text-white text-xs font-medium"><%= book.title.first(2) %></span>
+                </div>
+              <% end %>
+            </div>
+
+            <%# Informações do livro %>
+            <div class="p-4">
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                  <h3 class="font-semibold text-text-primary truncate"><%= book.title %></h3>
+                  <p class="text-sm text-text-secondary truncate"><%= book.author_name %></p>
+                </div>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                  <%= book.published? ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning' %>">
+                  <%= book.published? ? 'Publicado' : 'Rascunho' %>
+                </span>
+              </div>
+
+              <p class="text-xs text-text-muted mt-2">
+                Atualizado em <%= book.updated_at.strftime("%d/%m/%Y") %>
+              </p>
+
+              <%# Ações do livro %>
+              <div class="flex items-center gap-2 mt-4 pt-4 border-t border-border-light">
+                <%= link_to edit_book_path(book), class: "flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-text-primary bg-bg-main hover:bg-bg-sec rounded-lg transition-colors" do %>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                  Editar
+                <% end %>
+
+                <% unless book.published? %>
+                  <%= button_to publish_book_path(book), method: :patch, class: "flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-success hover:bg-success/90 rounded-lg transition-colors" do %>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                    Publicar
+                  <% end %>
+                <% end %>
+
+                <%= button_to book_path(book), method: :delete,
+                    data: { turbo_confirm: "Tem certeza que deseja excluir este livro?" },
+                    class: "p-2 text-text-muted hover:text-error hover:bg-error/10 rounded-lg transition-colors" do %>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="bg-bg-card rounded-xl border border-border-light shadow-sm p-8 text-center">
+        <div class="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        </div>
+        <h3 class="text-lg font-semibold text-text-primary mb-2">Nenhum livro criado</h3>
+        <p class="text-text-secondary mb-4">Comece escrevendo seu primeiro livro!</p>
+        <%= link_to new_book_path, class: "inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          Criar Primeiro Livro
+        <% end %>
+      </div>
+    <% end %>
+  </section>
+</div>

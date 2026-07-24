@@ -1,0 +1,13 @@
+<nav class="fixed top-0 left-0 right-0 z-40 bg-bg-main/80 backdrop-blur-md border-b border-border">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <div class="flex items-center gap-2">
+        <span class="font-serif text-xl font-bold text-primary">ContaAI</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <%= link_to "Entrar", new_user_session_path, class: "text-text-secondary hover:text-text-primary transition-colors font-medium" %>
+        <%= link_to "Criar Conta", new_user_registration_path, class: "bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md hover:shadow-primary/20" %>
+      </div>
+    </div>
+  </div>
+</nav>
