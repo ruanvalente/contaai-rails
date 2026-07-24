@@ -7,6 +7,10 @@ class ApplicationController < ActionController::Base
 
   protected
 
+  def after_sign_in_path_for(resource)
+    dashboard_path
+  end
+
   def configure_permitted_parameters
     devise_parameter_sanitizer.permit(:sign_up, keys: [ :name ])
     devise_parameter_sanitizer.permit(:account_update, keys: [ :name, :bio, :avatar ])
@@ -15,6 +19,12 @@ class ApplicationController < ActionController::Base
   private
 
   def set_layout
-    devise_controller? ? "devise" : "application"
+    if devise_controller?
+      "devise"
+    elsif user_signed_in?
+      "authenticated"
+    else
+      "application"
+    end
   end
 end

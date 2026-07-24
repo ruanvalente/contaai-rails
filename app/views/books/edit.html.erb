@@ -1,0 +1,51 @@
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-2xl font-serif font-bold text-text-primary mb-6">Editar Livro</h1>
+
+  <div class="bg-bg-card rounded-xl border border-border-light shadow-sm p-6">
+    <%= form_with model: @book, class: "space-y-6" do |f| %>
+      <% if @book.errors.any? %>
+        <div class="bg-error/10 border border-error/20 rounded-lg p-4">
+          <h3 class="text-sm font-medium text-error">Ocorreu <%= @book.errors.count == 1 ? '1 erro' : "#{@book.errors.count} erros" %> ao salvar:</h3>
+          <ul class="mt-2 list-disc list-inside text-sm text-error">
+            <% @book.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div>
+        <%= f.label :title, "Título", class: "block text-sm font-medium text-text-primary mb-2" %>
+        <%= f.text_field :title, class: "w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors" %>
+      </div>
+
+      <div>
+        <%= f.label :author_name, "Nome do Autor", class: "block text-sm font-medium text-text-primary mb-2" %>
+        <%= f.text_field :author_name, class: "w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors" %>
+      </div>
+
+      <div>
+        <%= f.label :description, "Sinopse", class: "block text-sm font-medium text-text-primary mb-2" %>
+        <%= f.text_area :description, rows: 4, class: "w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors resize-none" %>
+      </div>
+
+      <div>
+        <%= f.label :category, "Categoria", class: "block text-sm font-medium text-text-primary mb-2" %>
+        <%= f.select :category, Book.categories.keys.map { |c| [c.humanize, c] }, { include_blank: "Selecione uma categoria" }, class: "w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors" %>
+      </div>
+
+      <div>
+        <%= f.label :cover_color, "Cor de Fundo da Capa", class: "block text-sm font-medium text-text-primary mb-2" %>
+        <div class="flex items-center gap-3">
+          <%= f.color_field :cover_color, class: "w-12 h-10 border border-border rounded cursor-pointer" %>
+          <span class="text-sm text-text-secondary">Escolha uma cor para a capa padrão</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4 pt-4">
+        <%= f.submit "Salvar Alterações", class: "px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium cursor-pointer" %>
+        <%= link_to "Cancelar", book_path(@book), class: "px-6 py-2.5 text-text-secondary hover:text-text-primary transition-colors" %>
+      </div>
+    <% end %>
+  </div>
+</div>
