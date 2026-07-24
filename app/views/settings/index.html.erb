@@ -1,0 +1,58 @@
+<div class="max-w-2xl mx-auto">
+  <div class="mb-8">
+    <h1 class="text-2xl font-serif font-bold text-text-primary mb-2">Configurações</h1>
+    <p class="text-text-secondary">Preferências do usuário.</p>
+  </div>
+
+  <div class="space-y-6">
+    <%# Perfil %>
+    <div class="bg-bg-card rounded-xl border border-border-light shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-text-primary mb-4">Perfil</h2>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-text-primary mb-2">Nome</label>
+          <input type="text" value="<%= current_user.name %>" class="w-full px-4 py-2 border border-border rounded-lg bg-bg-main" disabled>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-text-primary mb-2">Email</label>
+          <input type="email" value="<%= current_user.email %>" class="w-full px-4 py-2 border border-border rounded-lg bg-bg-main" disabled>
+        </div>
+      </div>
+    </div>
+
+    <%# Preferências de Leitura %>
+    <div class="bg-bg-card rounded-xl border border-border-light shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-text-primary mb-4">Preferências de Leitura</h2>
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="font-medium text-text-primary">Modo Noturno</p>
+            <p class="text-sm text-text-secondary">Alternar para tema escuro</p>
+          </div>
+          <div class="w-12 h-6 bg-bg-sec rounded-full relative">
+            <div class="w-5 h-5 bg-white rounded-full absolute left-0.5 top-0.5 shadow-sm"></div>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-text-primary mb-2">Tamanho da Fonte</label>
+          <select class="w-full px-4 py-2 border border-border rounded-lg bg-bg-main">
+            <option>Pequeno</option>
+            <option selected>Médio</option>
+            <option>Grande</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <%# Segurança %>
+    <div class="bg-bg-card rounded-xl border border-border-light shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-text-primary mb-4">Segurança</h2>
+      <div class="space-y-4">
+        <%= link_to "#", class: "block px-4 py-3 bg-bg-main rounded-lg hover:bg-bg-sec transition-colors" do %>
+          <p class="font-medium text-text-primary">Alterar Senha</p>
+          <p class="text-sm text-text-secondary">Última alteração há <%= time_ago_in_words(current_user.updated_at) %></p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

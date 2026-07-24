@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <title><%= content_for(:title) || "ContaAI" %></title>
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <meta name="description"
+        content="<%= content_for(:description) || 'Plataforma de escrita, publicação e leitura de livros' %>">
+
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+
+  <%= yield :head %>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+
+  <link rel="icon" href="/icon.png" type="image/png">
+
+  <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+  <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
+</head>
+
+
+<body class="font-sans bg-bg-main text-text-primary antialiased">
+
+  <%= render "shared/flash" %>
+
+
+  <%= render "shared/sidebar" %>
+
+  <div class="p-4 my-10 sm:ml-64">
+
+    <%= render "shared/header" %>
+
+
+    <main class="pt-16 min-h-screen p-6 lg:p-8">
+
+      <%= yield %>
+
+    </main>
+
+  </div>
+
+</body>
+</html>

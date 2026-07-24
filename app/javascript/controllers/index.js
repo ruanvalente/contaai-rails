@@ -12,3 +12,12 @@ application.register("password-toggle", PasswordToggleController)
 
 import FlashController from "./flash_controller"
 application.register("flash", FlashController)
+
+import SidebarController from "./sidebar_controller"
+application.register("sidebar", SidebarController)
+
+import DropdownController from "./dropdown_controller"
+application.register("dropdown", DropdownController)
+
+import SearchController from "./search_controller"
+application.register("search", SearchController)
