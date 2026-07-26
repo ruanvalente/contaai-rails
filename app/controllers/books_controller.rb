@@ -1,6 +1,6 @@
 class BooksController < ApplicationController
   before_action :authenticate_user!, except: [ :index, :show ]
-  before_action :set_book, only: [ :show, :edit, :update, :destroy, :publish, :read ]
+  before_action :set_book, only: [ :show, :edit, :update, :destroy, :publish, :read, :write ]
 
   def index
     @books = Book.published.includes(:user).order(published_at: :desc)
@@ -49,6 +49,12 @@ class BooksController < ApplicationController
     end
     @book.update(status: :published, published_at: Time.current)
     redirect_to @book, notice: "Livro publicado com sucesso."
+  end
+
+  def write
+    authorize_book_owner!
+    @chapters = @book.chapters.ordered
+    @active_chapter = @chapters.first
   end
 
   def read
