@@ -3,7 +3,7 @@ class Book < ApplicationRecord
 
   has_one_attached :cover_image
 
-  has_many :chapters, dependent: :destroy
+  has_many :chapters, -> { order(position: :asc) }, dependent: :destroy
   has_many :ratings, dependent: :destroy
   has_many :favorites, dependent: :destroy
   has_many :reading_progresses, dependent: :destroy
@@ -13,4 +13,20 @@ class Book < ApplicationRecord
 
   scope :published, -> { where(status: :published) }
   scope :recent, -> { order(published_at: :desc) }
+
+  validates :title, presence: true
+  validates :author_name, presence: true
+  validates :category, presence: true
+
+  def total_word_count
+    chapters.sum(:word_count)
+  end
+
+  def has_chapters?
+    chapters.any?
+  end
+
+  def publishable?
+    title.present? && has_chapters? && category.present?
+  end
 end

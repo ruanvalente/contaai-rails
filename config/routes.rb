@@ -27,6 +27,12 @@ Rails.application.routes.draw do
       patch :publish
       get :read
     end
+
+    resources :chapters, only: [ :index, :show, :create, :update, :destroy ] do
+      member do
+        patch :reorder
+      end
+    end
   end
 
   # Search
