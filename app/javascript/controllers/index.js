@@ -21,3 +21,9 @@ application.register("dropdown", DropdownController)
 
 import SearchController from "./search_controller"
 application.register("search", SearchController)
+
+import EditorController from "./editor_controller"
+application.register("editor", EditorController)
+
+import ChapterPanelController from "./chapter_panel_controller"
+application.register("chapter-panel", ChapterPanelController)

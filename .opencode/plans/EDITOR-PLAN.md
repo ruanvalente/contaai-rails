@@ -394,7 +394,7 @@ POST /books/:book_id/chapters
 
 ---
 
-### Etapa 2: Editor de Texto Rico (TipTap)
+### Etapa 2: Editor de Texto Rico (TipTap) ✅
 
 **Arquivos:** 5 arquivos
 
@@ -546,5 +546,84 @@ Etapa 1 ──→ Etapa 2 ──→ Etapa 3
 
 ---
 
+### Etapa 2: Editor de Texto Rico (TipTap) ✅
+
+**Status:** Concluída em 26/07/2026
+
+**Arquivos criados:**
+
+| Arquivo | Descrição |
+|---|---|
+| `app/javascript/controllers/editor_controller.js` | Stimulus controller para TipTap com toolbar, auto-save e contadores |
+| `app/javascript/controllers/chapter_panel_controller.js` | Painel lateral com CRUD de capítulos, drag-and-drop e renomeação inline |
+| `app/views/books/write.html.erb` | View principal do editor com layout completo |
+| `app/views/chapters/_chapter.json.jbuilder` | Partial JSON para serialização de capítulos |
+| `app/views/chapters/create.turbo_stream.erb` | Resposta Turbo Stream para criação de capítulos |
+
+**Arquivos atualizados:**
+
+| Arquivo | Mudança |
+|---|---|
+| `app/controllers/books_controller.rb` | Adicionada action `write` com carregamento de capítulos |
+| `config/routes.rb` | Adicionada rota `get :write` em member do resource books |
+| `app/javascript/controllers/index.js` | Registrados controllers `editor` e `chapter-panel` |
+| `package.json` | Adicionadas dependências `@tiptap/core`, `@tiptap/starter-kit`, `@tiptap/pm` |
+| `app/views/books/show.html.erb` | Adicionado link "Escrever" para acessar o editor |
+
+**Dependências npm instaladas:**
+
+- `@tiptap/core` - Core do TipTap
+- `@tiptap/starter-kit` - Extensões básicas (bold, italic, headings, lists, blockquote, etc.)
+- `@tiptap/pm` - ProseMirror dependencies
+
+**Funcionalidades implementadas:**
+
+1. **Rich Text Editor (TipTap)**
+   - Toolbar completa: Bold, Italic, Underline, H1-H3, Listas, Citação, Separador, Undo/Redo
+   - Fonte serif (Cormorant Garamond) para experiência de escrita
+   - Largura máxima do conteúdo: ~700px
+   - Placeholder no primeiro capítulo
+
+2. **Painel de Capítulos (Sidebar)**
+   - Lista ordenada de capítulos com drag-and-drop para reordenar
+   - Duplo-clique para renomear inline
+   - Botão "+" para adicionar novo capítulo
+   - Menu de exclusão com confirmação
+   - Indicador visual do capítulo ativo (borda esquerda + background)
+   - Contagem de palavras por capítulo
+   - Animações de slide-down/slide-up para adicionar/excluir
+
+3. **Integração com Backend**
+   - Carregamento de conteúdo do capítulo via fetch API
+   - Troca de capítulo com salvamento automático do anterior
+   - Evento customizado `chapter:selected` para comunicação entre controllers
+
+4. **Design**
+   - Paleta de cores conforme especificação: fundo `#F5F0EB`, sidebar `#F5E6D3`, toolbar branca
+   - Tipografia: Inter para UI, Cormorant Garamond para conteúdo
+   - Micro-interações: hover nos capítulos, animações de entrada/saída
+
+**Decisões tomadas:**
+
+1. **TipTap via npm**: Instalado via npm (não CDN) para melhor integração com esbuild
+2. **Comunicação via Custom Events**: Chapter panel dispara `chapter:selected`, editor escuta e carrega conteúdo
+3. **Conteúdo inicial via data attribute**: `data-editor-content-value` passa o conteúdo do capítulo ativo para o editor
+4. **Salvamento manual**: Auto-save será implementado na Etapa 3 (atualmente apenas UI pronta)
+
+**Correções pós-review:**
+
+1. **`saveChapter` retorna booleano**: Agora retorna `true`/`false` para indicar sucesso/falha
+2. **`loadChapter` aborta se save falhar**: Evita perda de conteúdo ao trocar de capítulo com erro de rede
+3. **`rename` só atualiza estado local com sucesso do servidor**: Evita dessincronização UI/dados
+
+**Pendente:**
+
+- [ ] Testar em ambiente com PostgreSQL
+- [ ] Implementar salvamento automático (Etapa 3)
+- [ ] Implementar contadores em tempo real (Etapa 3)
+- [ ] Adicionar suporte a mobile (sidebar colapsável)
+
+---
+
 _Criado em: 26/07/2026_
-_Versão: 1.1_
+_Versão: 1.2_

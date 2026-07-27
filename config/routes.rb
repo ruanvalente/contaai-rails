@@ -26,6 +26,7 @@ Rails.application.routes.draw do
     member do
       patch :publish
       get :read
+      get :write
     end
 
     resources :chapters, only: [ :index, :show, :create, :update, :destroy ] do
