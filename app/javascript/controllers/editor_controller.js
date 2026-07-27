@@ -27,13 +27,13 @@ export default class extends Controller {
         }
       },
       onUpdate: ({ editor }) => {
-        this.updateWordCount(editor)
+        this.updateDisplayCounts(editor)
         this.scheduleAutoSave()
       }
     })
 
     this.autoSaveTimeout = null
-    this.updateWordCount(this.editor)
+    this.updateDisplayCounts(this.editor)
   }
 
   disconnect() {
@@ -53,9 +53,13 @@ export default class extends Controller {
     return this.statusBarTarget.querySelector("[data-char-count]")
   }
 
-  updateWordCount(editor) {
+  calculateWordCount(text) {
+    return text.trim() ? text.trim().split(/\s+/).length : 0
+  }
+
+  updateDisplayCounts(editor) {
     const text = editor.getText()
-    const words = text.trim() ? text.trim().split(/\s+/).length : 0
+    const words = this.calculateWordCount(text)
     const chars = text.length
 
     if (this.wordCountTarget) {
@@ -64,6 +68,8 @@ export default class extends Controller {
     if (this.charCountTarget) {
       this.charCountTarget.textContent = `${chars.toLocaleString("pt-BR")} caracteres`
     }
+
+    this.updateSidebarWordCount(words)
   }
 
   scheduleAutoSave() {
@@ -75,7 +81,7 @@ export default class extends Controller {
 
     this.autoSaveTimeout = setTimeout(() => {
       this.saveChapter()
-    }, 30000)
+    }, 5000)
   }
 
   showSavingStatus() {
@@ -107,12 +113,25 @@ export default class extends Controller {
     }
   }
 
+  updateSidebarWordCount(wordCount) {
+    const list = document.querySelector("[data-chapter-panel-target='list']")
+    if (!list) return
+
+    const activeLi = list.querySelector(`li[data-chapter-id='${this.chapterIdValue}']`)
+    if (!activeLi) return
+
+    const countEl = activeLi.querySelector(".chapter-word-count")
+    if (countEl) {
+      countEl.textContent = `${wordCount.toLocaleString("pt-BR")} pal.`
+    }
+  }
+
   async saveChapter() {
     if (!this.chapterIdValue) return true
 
     const content = this.editor.getHTML()
     const text = this.editor.getText()
-    const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
+    const wordCount = this.calculateWordCount(text)
 
     try {
       const response = await fetch(`/books/${this.bookIdValue}/chapters/${this.chapterIdValue}`, {
@@ -147,7 +166,7 @@ export default class extends Controller {
     if (this.editor && this.chapterIdValue) {
       const content = this.editor.getHTML()
       const text = this.editor.getText()
-      const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
+      const wordCount = this.calculateWordCount(text)
 
       navigator.sendBeacon(
         `/books/${this.bookIdValue}/chapters/${this.chapterIdValue}`,
@@ -224,6 +243,11 @@ export default class extends Controller {
 
     if (chapterId === this.chapterIdValue) return
 
+    if (this.autoSaveTimeout) {
+      clearTimeout(this.autoSaveTimeout)
+      this.autoSaveTimeout = null
+    }
+
     const saved = await this.saveChapter()
     if (!saved) return
 
@@ -239,7 +263,7 @@ export default class extends Controller {
         this.chapterIdValue = chapter.id
         this.chapterTitleValue = chapter.title
         this.editor.commands.setContent(chapter.content || "")
-        this.updateWordCount(this.editor)
+        this.updateDisplayCounts(this.editor)
         this.showSavedStatus()
       }
     } catch (error) {

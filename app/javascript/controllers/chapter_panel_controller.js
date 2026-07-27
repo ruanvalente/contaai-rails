@@ -12,7 +12,7 @@ export default class extends Controller {
   }
 
   async addChapter() {
-    const position = this.listTarget.children.length
+    const position = this.listTarget.querySelectorAll("li[data-chapter-id]").length
 
     try {
       const response = await fetch(`/books/${this.bookIdValue}/chapters`, {
