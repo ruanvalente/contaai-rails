@@ -34,12 +34,52 @@
         <%= f.select :category, Book.categories.keys.map { |c| [c.humanize, c] }, { include_blank: "Selecione uma categoria" }, class: "w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors" %>
       </div>
 
-      <div>
-        <%= f.label :cover_color, "Cor de Fundo da Capa", class: "block text-sm font-medium text-text-primary mb-2" %>
-        <div class="flex items-center gap-3">
-          <%= f.color_field :cover_color, class: "w-12 h-10 border border-border rounded cursor-pointer" %>
-          <span class="text-sm text-text-secondary">Escolha uma cor para a capa padrão</span>
+      <div data-controller="cover-upload">
+        <label class="block text-sm font-medium text-text-primary mb-2">Capa do Livro</label>
+
+        <input type="file"
+               data-cover-upload-target="fileInput"
+               accept="image/jpeg,image/png,image/webp"
+               class="hidden"
+               name="book[cover_image]"
+               id="book_cover_image">
+
+        <div data-cover-upload-target="dropZone"
+             data-action="click->cover-upload#openFilePicker dragover->cover-upload#onDragOver dragleave->cover-upload#onDragLeave drop->cover-upload#onDrop"
+             class="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer transition-colors hover:border-[#8B7355] hover:bg-[#C2A47E]/5">
+
+          <div data-cover-upload-target="placeholder">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-3 text-text-muted">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+              <polyline points="16 6 12 2 8 6"/>
+              <line x1="12" x2="12" y1="2" y2="15"/>
+            </svg>
+            <p class="text-sm text-text-secondary font-medium">Arraste uma imagem ou clique para selecionar</p>
+            <p class="text-xs text-text-muted mt-1">JPG, PNG ou WebP · Máximo 5MB · Proporção 2:3 (600x900px)</p>
+          </div>
+
+          <div data-cover-upload-target="previewContainer" class="hidden relative">
+            <img data-cover-upload-target="preview" class="w-full max-w-[200px] mx-auto rounded-lg shadow-sm" alt="Preview da capa">
+            <button type="button"
+                    data-action="click->cover-upload#removeCover"
+                    class="absolute top-2 right-[calc(50%-100px+8px)] p-1.5 bg-error text-white rounded-full hover:bg-error/90 transition-colors shadow-sm z-10"
+                    title="Remover capa">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+          </div>
         </div>
+
+        <p data-cover-upload-target="error" class="hidden text-xs text-error mt-2"></p>
+
+        <div class="mt-4">
+          <%= f.label :cover_color, "Cor de Fundo da Capa", class: "block text-sm font-medium text-text-primary mb-2" %>
+          <div class="flex items-center gap-3">
+            <%= f.color_field :cover_color, class: "w-12 h-10 border border-border rounded cursor-pointer" %>
+            <span class="text-sm text-text-secondary">Usada quando não há imagem de capa</span>
+          </div>
+        </div>
+
+        <input type="hidden" name="book[remove_cover]" value="">
       </div>
 
       <div class="flex items-center gap-4 pt-4">

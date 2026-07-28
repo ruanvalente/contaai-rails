@@ -16,7 +16,7 @@ class BooksController < ApplicationController
   def create
     @book = current_user.books.build(book_params)
     if @book.save
-      redirect_to @book, notice: "Livro criado com sucesso."
+      redirect_to write_book_path(@book), notice: "Livro criado com sucesso. Comece a escrever!"
     else
       render :new, status: :unprocessable_entity
     end
@@ -27,9 +27,8 @@ class BooksController < ApplicationController
   end
 
   def update
-    unless @book.user == current_user
-      redirect_to root_path, alert: "Não autorizado." and return
-    end
+    authorize_book_owner!
+    handle_cover_removal
     if @book.update(book_params)
       redirect_to @book, notice: "Livro atualizado com sucesso."
     else
@@ -71,6 +70,12 @@ class BooksController < ApplicationController
   end
 
   def book_params
-    params.require(:book).permit(:title, :description, :content, :category, :cover_color, :author_name)
+    params.require(:book).permit(:title, :description, :content, :category, :cover_color, :author_name, :cover_image)
+  end
+
+  def handle_cover_removal
+    if params[:book][:remove_cover] == "1" && @book.cover_image.attached?
+      @book.cover_image.purge_later
+    end
   end
 end
