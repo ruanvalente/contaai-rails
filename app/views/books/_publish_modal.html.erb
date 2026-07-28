@@ -1,0 +1,98 @@
+<div data-publish-target="modal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm"
+     data-action="click->publish#onBackdropClick:keydown.esc->publish#close">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden"
+       data-action="click->publish#onModalClick">
+
+    <div class="px-6 pt-6 pb-4">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-text-primary font-serif">Publicar Livro</h2>
+        <button data-action="click->publish#close"
+                class="p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-sec transition-colors"
+                aria-label="Fechar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+
+      <% if @book.cover_image.attached? %>
+        <div class="flex justify-center mb-4">
+          <%= image_tag @book.cover_image,
+              class: "h-32 w-auto rounded-lg shadow-md object-cover",
+              alt: "Capa de #{@book.title}" %>
+        </div>
+      <% else %>
+        <div class="flex justify-center mb-4">
+          <div class="h-32 w-24 rounded-lg shadow-md flex items-center justify-center text-white text-3xl font-serif font-bold"
+               style="background-color: <%= @book.cover_color || '#8B4513' %>">
+            <%= @book.title&.first(2)&.upcase %>
+          </div>
+        </div>
+      <% end %>
+
+      <p class="text-sm text-text-secondary text-center mb-4 line-clamp-2">
+        <%= @book.description.presence || "Sem sinopse" %>
+      </p>
+
+      <div class="space-y-2.5" data-publish-target="checklist">
+        <div class="flex items-center gap-3 text-sm" data-publish-target="titleCheck">
+          <% if @book.title.present? %>
+            <span class="flex items-center justify-center w-5 h-5 rounded-full bg-success/10 text-success">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+            <span class="text-text-primary">Título definido</span>
+          <% else %>
+            <span class="flex items-center justify-center w-5 h-5 rounded-full bg-error/10 text-error">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </span>
+            <span class="text-error">Título obrigatório</span>
+          <% end %>
+        </div>
+
+        <div class="flex items-center gap-3 text-sm" data-publish-target="chapterCheck">
+          <% if @book.has_chapters? && @book.chapters.sum(:word_count) > 0 %>
+            <span class="flex items-center justify-center w-5 h-5 rounded-full bg-success/10 text-success">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+            <span class="text-text-primary">Pelo menos um capítulo com conteúdo</span>
+          <% else %>
+            <span class="flex items-center justify-center w-5 h-5 rounded-full bg-error/10 text-error">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </span>
+            <span class="text-error">Adicione conteúdo aos capítulos</span>
+          <% end %>
+        </div>
+
+        <div class="flex items-center gap-3 text-sm" data-publish-target="categoryCheck">
+          <% if @book.category.present? %>
+            <span class="flex items-center justify-center w-5 h-5 rounded-full bg-success/10 text-success">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+            <span class="text-text-primary">Categoria definida</span>
+          <% else %>
+            <span class="flex items-center justify-center w-5 h-5 rounded-full bg-error/10 text-error">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </span>
+            <span class="text-error">Selecione uma categoria</span>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="px-6 pb-6 flex items-center justify-end gap-3">
+      <button data-action="click->publish#close"
+              class="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary bg-bg-sec hover:bg-border-light rounded-lg transition-colors">
+        Cancelar
+      </button>
+      <button data-action="click->publish#confirm"
+              data-publish-target="confirmButton"
+              class="px-4 py-2 text-sm font-medium text-white bg-[#8B7355] hover:bg-[#7A6548] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              <%= 'disabled' unless @book.publishable? %>>
+        <span data-publish-target="confirmText">Publicar</span>
+        <span data-publish-target="confirmLoading" class="hidden">
+          <svg class="animate-spin inline w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+          Publicando...
+        </span>
+      </button>
+    </div>
+  </div>
+</div>

@@ -34,17 +34,80 @@
         <%= f.select :category, Book.categories.keys.map { |c| [c.humanize, c] }, { include_blank: "Selecione uma categoria" }, class: "w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors" %>
       </div>
 
-      <div>
-        <%= f.label :cover_color, "Cor de Fundo da Capa", class: "block text-sm font-medium text-text-primary mb-2" %>
-        <div class="flex items-center gap-3">
-          <%= f.color_field :cover_color, class: "w-12 h-10 border border-border rounded cursor-pointer" %>
-          <span class="text-sm text-text-secondary">Escolha uma cor para a capa padrão</span>
+      <div data-controller="cover-upload">
+        <label class="block text-sm font-medium text-text-primary mb-2">Capa do Livro</label>
+
+        <input type="file"
+               data-cover-upload-target="fileInput"
+               accept="image/jpeg,image/png,image/webp"
+               class="hidden"
+               name="book[cover_image]"
+               id="book_cover_image">
+
+        <div data-cover-upload-target="dropZone"
+             data-action="click->cover-upload#openFilePicker dragover->cover-upload#onDragOver dragleave->cover-upload#onDragLeave drop->cover-upload#onDrop"
+             class="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer transition-colors hover:border-[#8B7355] hover:bg-[#C2A47E]/5">
+
+          <div data-cover-upload-target="placeholder" class="<%= 'hidden' if @book.cover_image.attached? %>">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-3 text-text-muted">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+              <polyline points="16 6 12 2 8 6"/>
+              <line x1="12" x2="12" y1="2" y2="15"/>
+            </svg>
+            <p class="text-sm text-text-secondary font-medium">Arraste uma imagem ou clique para selecionar</p>
+            <p class="text-xs text-text-muted mt-1">JPG, PNG ou WebP · Máximo 5MB · Proporção 2:3 (600x900px)</p>
+          </div>
+
+          <div data-cover-upload-target="previewContainer" class="<%= @book.cover_image.attached? ? '' : 'hidden' %> relative">
+            <% if @book.cover_image.attached? %>
+              <img data-cover-upload-target="preview" class="w-full max-w-[200px] mx-auto rounded-lg shadow-sm" src="<%= url_for(@book.cover_image) %>" alt="Capa atual">
+            <% else %>
+              <img data-cover-upload-target="preview" class="w-full max-w-[200px] mx-auto rounded-lg shadow-sm" alt="Preview da capa">
+            <% end %>
+            <% if @book.cover_image.attached? %>
+              <button type="button"
+                      data-action="click->cover-upload#removeCover"
+                      class="absolute top-2 right-[calc(50%-100px+8px)] p-1.5 bg-error text-white rounded-full hover:bg-error/90 transition-colors shadow-sm z-10"
+                      title="Remover capa">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+            <% end %>
+          </div>
         </div>
+
+        <p data-cover-upload-target="error" class="hidden text-xs text-error mt-2"></p>
+
+        <div class="mt-4">
+          <%= f.label :cover_color, "Cor de Fundo da Capa", class: "block text-sm font-medium text-text-primary mb-2" %>
+          <div class="flex items-center gap-3">
+            <%= f.color_field :cover_color, class: "w-12 h-10 border border-border rounded cursor-pointer" %>
+            <span class="text-sm text-text-secondary">Usada quando não há imagem de capa</span>
+          </div>
+        </div>
+
+        <input type="hidden" name="book[remove_cover]" value="">
       </div>
 
       <div class="flex items-center gap-4 pt-4">
         <%= f.submit "Salvar Alterações", class: "px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium cursor-pointer" %>
         <%= link_to "Cancelar", book_path(@book), class: "px-6 py-2.5 text-text-secondary hover:text-text-primary transition-colors" %>
+      </div>
+
+      <div class="border-t border-border-light mt-6 pt-6">
+        <h3 class="text-sm font-medium text-text-primary mb-3">Ações</h3>
+        <div class="flex flex-wrap gap-3">
+          <%= link_to write_book_path(@book), class: "inline-flex items-center gap-2 px-4 py-2 bg-[#8B7355] text-white text-sm font-medium rounded-lg hover:bg-[#7A6548] transition-colors" do %>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            Escrever / Editar Conteúdo
+          <% end %>
+
+          <% if @book.published? %>
+            <%= link_to book_path(@book), class: "inline-flex items-center gap-2 px-4 py-2 bg-success/10 text-success text-sm font-medium rounded-lg hover:bg-success/20 transition-colors" do %>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              Ver Publicação
+            <% end %>
+          <% end %>
+        </div>
       </div>
     <% end %>
   </div>

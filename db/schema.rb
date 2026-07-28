@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_22_134216) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_26_000001) do
   create_schema "extensions"
 
   # These are extensions that must be enabled in order to support this database
@@ -80,6 +80,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_22_134216) do
     t.index ["status"], name: "index_books_on_status"
     t.index ["user_id", "status"], name: "index_books_on_user_id_and_status"
     t.index ["user_id"], name: "index_books_on_user_id"
+  end
+
+  create_table "public.chapters", force: :cascade do |t|
+    t.bigint "book_id", null: false
+    t.text "content"
+    t.datetime "created_at", null: false
+    t.integer "position", default: 0, null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.integer "word_count", default: 0, null: false
+    t.index ["book_id", "position"], name: "index_chapters_on_book_id_and_position"
+    t.index ["book_id"], name: "index_chapters_on_book_id"
   end
 
   create_table "public.favorites", force: :cascade do |t|
@@ -164,6 +176,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_22_134216) do
   add_foreign_key "public.author_follows", "public.users", column: "author_id"
   add_foreign_key "public.author_follows", "public.users", column: "follower_id"
   add_foreign_key "public.books", "public.users"
+  add_foreign_key "public.chapters", "public.books"
   add_foreign_key "public.favorites", "public.books"
   add_foreign_key "public.favorites", "public.users"
   add_foreign_key "public.ratings", "public.books"

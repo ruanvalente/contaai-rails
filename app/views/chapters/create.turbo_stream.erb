@@ -1,0 +1,7 @@
+<%= turbo_stream.append "chapters" do %>
+  <%= render partial: "chapters/chapter", locals: { chapter: @chapter } %>
+<% end %>
+
+<%= turbo_stream.replace "empty-state" do %>
+  <span id="empty-state"></span>
+<% end %>

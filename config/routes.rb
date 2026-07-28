@@ -25,7 +25,15 @@ Rails.application.routes.draw do
   resources :books do
     member do
       patch :publish
+      patch :unpublish
       get :read
+      get :write
+    end
+
+    resources :chapters, only: [ :index, :show, :create, :update, :destroy ] do
+      member do
+        patch :reorder
+      end
     end
   end
 

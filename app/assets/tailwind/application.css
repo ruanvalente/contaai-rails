@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+.drag-over {
+  border-color: #8B7355;
+  background-color: rgba(194, 164, 126, 0.1);
+}
