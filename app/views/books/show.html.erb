@@ -55,6 +55,15 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
               Editar
             <% end %>
+
+            <% if @book.published? %>
+              <%= link_to unpublish_book_path(@book),
+                  data: { turbo_method: :patch, turbo_confirm: "Despublicar este livro?" },
+                  class: "inline-flex items-center gap-2 px-4 py-2 bg-warning/10 text-warning border border-warning/20 rounded-lg hover:bg-warning/20 transition-colors font-medium" do %>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                Despublicar
+              <% end %>
+            <% end %>
           <% end %>
         </div>
       </div>

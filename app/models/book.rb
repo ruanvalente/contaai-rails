@@ -27,6 +27,6 @@ class Book < ApplicationRecord
   end
 
   def publishable?
-    title.present? && has_chapters? && category.present?
+    title.present? && has_chapters? && chapters.sum(:word_count) > 0 && category.present?
   end
 end

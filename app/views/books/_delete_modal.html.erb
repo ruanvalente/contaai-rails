@@ -1,0 +1,47 @@
+<div data-publish-target="deleteModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm"
+     data-action="keydown.esc->publish#closeDeleteModal">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden"
+       data-action="click->publish#onDeleteModalClick">
+
+    <div class="px-6 pt-6 pb-4">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="flex items-center justify-center w-10 h-10 rounded-full bg-error/10 text-error">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+        </span>
+        <div>
+          <h2 class="text-lg font-semibold text-text-primary">Excluir Livro</h2>
+          <p class="text-sm text-text-muted">Esta ação não pode ser desfeita.</p>
+        </div>
+      </div>
+
+      <p class="text-sm text-text-secondary mb-4">
+        Para confirmar, digite o título do livro:
+        <strong class="text-text-primary">"<%= @book.title %>"</strong>
+      </p>
+
+      <input type="text"
+             data-publish-target="deleteConfirmInput"
+             data-action="input->publish#onDeleteInput"
+             placeholder="Digite o título do livro"
+             class="w-full px-3 py-2 text-sm border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-error/30 focus:border-error transition-colors">
+
+      <p data-publish-target="deleteError" class="hidden mt-2 text-xs text-error">
+        O título não confere.
+      </p>
+    </div>
+
+    <div class="px-6 pb-6 flex items-center justify-end gap-3">
+      <button data-action="click->publish#closeDeleteModal"
+              class="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary bg-bg-sec hover:bg-border-light rounded-lg transition-colors">
+        Cancelar
+      </button>
+      <button data-action="click->publish#confirmDelete"
+              data-publish-target="deleteConfirmButton"
+              disabled
+              class="px-4 py-2 text-sm font-medium text-white bg-error hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        Excluir Permanentemente
+      </button>
+    </div>
+  </div>
+</div>
