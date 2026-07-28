@@ -27,3 +27,9 @@ application.register("editor", EditorController)
 
 import ChapterPanelController from "./chapter_panel_controller"
 application.register("chapter-panel", ChapterPanelController)
+
+import AutoSaveController from "./auto_save_controller"
+application.register("auto-save", AutoSaveController)
+
+import WordCountController from "./word_count_controller"
+application.register("word-count", WordCountController)
