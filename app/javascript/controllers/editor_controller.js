@@ -27,163 +27,33 @@ export default class extends Controller {
         }
       },
       onUpdate: ({ editor }) => {
-        this.updateDisplayCounts(editor)
-        this.scheduleAutoSave()
+        this.dispatchContentChanged(editor)
       }
     })
 
-    this.autoSaveTimeout = null
-    this.updateDisplayCounts(this.editor)
+    this.element.editorController = this
+
+    setTimeout(() => {
+      this.dispatchContentChanged(this.editor)
+    }, 0)
   }
 
   disconnect() {
-    if (this.autoSaveTimeout) {
-      clearTimeout(this.autoSaveTimeout)
-    }
     if (this.editor) {
       this.editor.destroy()
     }
   }
 
-  get wordCountTarget() {
-    return this.statusBarTarget.querySelector("[data-word-count]")
-  }
-
-  get charCountTarget() {
-    return this.statusBarTarget.querySelector("[data-char-count]")
-  }
-
-  calculateWordCount(text) {
-    return text.trim() ? text.trim().split(/\s+/).length : 0
-  }
-
-  updateDisplayCounts(editor) {
+  dispatchContentChanged(editor) {
     const text = editor.getText()
-    const words = this.calculateWordCount(text)
-    const chars = text.length
+    const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
 
-    if (this.wordCountTarget) {
-      this.wordCountTarget.textContent = `${words.toLocaleString("pt-BR")} palavras`
-    }
-    if (this.charCountTarget) {
-      this.charCountTarget.textContent = `${chars.toLocaleString("pt-BR")} caracteres`
-    }
-
-    this.updateSidebarWordCount(words)
-  }
-
-  scheduleAutoSave() {
-    if (this.autoSaveTimeout) {
-      clearTimeout(this.autoSaveTimeout)
-    }
-
-    this.showSavingStatus()
-
-    this.autoSaveTimeout = setTimeout(() => {
-      this.saveChapter()
-    }, 5000)
-  }
-
-  showSavingStatus() {
-    const statusEl = this.statusBarTarget.querySelector("[data-save-status]")
-    if (statusEl) {
-      statusEl.textContent = "Salvando..."
-      statusEl.classList.remove("text-success")
-      statusEl.classList.add("text-text-muted")
-    }
-  }
-
-  showSavedStatus() {
-    const statusEl = this.statusBarTarget.querySelector("[data-save-status]")
-    if (statusEl) {
-      const now = new Date()
-      const time = now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
-      statusEl.textContent = `Salvo automaticamente às ${time}`
-      statusEl.classList.remove("text-text-muted")
-      statusEl.classList.add("text-success")
-    }
-  }
-
-  showErrorStatus() {
-    const statusEl = this.statusBarTarget.querySelector("[data-save-status]")
-    if (statusEl) {
-      statusEl.textContent = "Erro ao salvar"
-      statusEl.classList.remove("text-success")
-      statusEl.classList.add("text-error")
-    }
-  }
-
-  updateSidebarWordCount(wordCount) {
-    const list = document.querySelector("[data-chapter-panel-target='list']")
-    if (!list) return
-
-    const activeLi = list.querySelector(`li[data-chapter-id='${this.chapterIdValue}']`)
-    if (!activeLi) return
-
-    const countEl = activeLi.querySelector(".chapter-word-count")
-    if (countEl) {
-      countEl.textContent = `${wordCount.toLocaleString("pt-BR")} pal.`
-    }
-  }
-
-  async saveChapter() {
-    if (!this.chapterIdValue) return true
-
-    const content = this.editor.getHTML()
-    const text = this.editor.getText()
-    const wordCount = this.calculateWordCount(text)
-
-    try {
-      const response = await fetch(`/books/${this.bookIdValue}/chapters/${this.chapterIdValue}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": this.csrfToken,
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({
-          chapter: {
-            content: content,
-            word_count: wordCount
-          }
-        })
+    this.element.dispatchEvent(
+      new CustomEvent("editor:contentChanged", {
+        detail: { wordCount, text },
+        bubbles: true
       })
-
-      if (response.ok) {
-        this.showSavedStatus()
-        return true
-      } else {
-        this.showErrorStatus()
-        return false
-      }
-    } catch (error) {
-      this.showErrorStatus()
-      return false
-    }
-  }
-
-  saveBeforeUnload(event) {
-    if (this.editor && this.chapterIdValue) {
-      const content = this.editor.getHTML()
-      const text = this.editor.getText()
-      const wordCount = this.calculateWordCount(text)
-
-      navigator.sendBeacon(
-        `/books/${this.bookIdValue}/chapters/${this.chapterIdValue}`,
-        new URLSearchParams({
-          "_method": "patch",
-          "chapter[content]": content,
-          "chapter[word_count]": wordCount,
-          "authenticity_token": this.csrfToken
-        })
-      )
-    }
-  }
-
-  saveVisibilityChange() {
-    if (document.hidden && this.editor && this.chapterIdValue) {
-      this.saveChapter()
-    }
+    )
   }
 
   bold() {
@@ -238,24 +108,53 @@ export default class extends Controller {
     return this.editor.isActive(name, attrs)
   }
 
+  showSavingStatus() {
+    const statusEl = this.statusBarTarget?.querySelector("[data-save-status]")
+    if (statusEl) {
+      statusEl.textContent = "Salvando..."
+      statusEl.classList.remove("text-success")
+      statusEl.classList.add("text-text-muted")
+    }
+  }
+
+  showSavedStatus() {
+    const statusEl = this.statusBarTarget?.querySelector("[data-save-status]")
+    if (statusEl) {
+      const now = new Date()
+      const time = now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+      statusEl.textContent = `Salvo automaticamente às ${time}`
+      statusEl.classList.remove("text-text-muted")
+      statusEl.classList.add("text-success")
+    }
+  }
+
+  showErrorStatus() {
+    const statusEl = this.statusBarTarget?.querySelector("[data-save-status]")
+    if (statusEl) {
+      statusEl.textContent = "Erro ao salvar"
+      statusEl.classList.remove("text-success")
+      statusEl.classList.add("text-error")
+    }
+  }
+
   async loadChapter(event) {
     const { chapterId } = event.detail
-
     if (chapterId === this.chapterIdValue) return
 
-    if (this.autoSaveTimeout) {
-      clearTimeout(this.autoSaveTimeout)
-      this.autoSaveTimeout = null
-    }
+    const autoSaveCtrl = this.application.getControllerForElementAndIdentifier(
+      this.element,
+      "auto-save"
+    )
 
-    const saved = await this.saveChapter()
-    if (!saved) return
+    if (autoSaveCtrl) {
+      const saved = await autoSaveCtrl.save()
+      if (!saved) return
+      autoSaveCtrl.updateChapterId(chapterId)
+    }
 
     try {
       const response = await fetch(`/books/${this.bookIdValue}/chapters/${chapterId}`, {
-        headers: {
-          "Accept": "application/json"
-        }
+        headers: { "Accept": "application/json" }
       })
 
       if (response.ok) {
@@ -263,15 +162,26 @@ export default class extends Controller {
         this.chapterIdValue = chapter.id
         this.chapterTitleValue = chapter.title
         this.editor.commands.setContent(chapter.content || "")
-        this.updateDisplayCounts(this.editor)
-        this.showSavedStatus()
+
+        this.element.dispatchEvent(
+          new CustomEvent("editor:chapterChanged", {
+            detail: { chapterId: chapter.id },
+            bubbles: true
+          })
+        )
       }
     } catch (error) {
       console.error("Erro ao carregar capítulo:", error)
     }
   }
 
-  get csrfToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.content || ""
+  getChapterData() {
+    if (!this.editor) return null
+
+    const content = this.editor.getHTML()
+    const text = this.editor.getText()
+    const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
+
+    return { content, wordCount }
   }
 }

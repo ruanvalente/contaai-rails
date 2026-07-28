@@ -410,15 +410,15 @@ POST /books/:book_id/chapters
 
 ---
 
-### Etapa 3: Salvamento Automático e Contadores
+### Etapa 3: Salvamento Automático e Contadores ✅
 
 **Arquivos:** 3 arquivos
 
-| # | Arquivo | Ação |
-|---|---|---|
-| 3.1 | `app/javascript/controllers/auto_save_controller.js` | Lógica de debounce + beacon |
-| 3.2 | `app/javascript/controllers/word_count_controller.js` | Contadores em tempo real |
-| 3.3 | Atualizar `editor_controller.js` | Integrar auto-save e contadores |
+| # | Arquivo | Ação | Status |
+|---|---|---|---|
+| 3.1 | `app/javascript/controllers/auto_save_controller.js` | Lógica de debounce + beacon | ✅ |
+| 3.2 | `app/javascript/controllers/word_count_controller.js` | Contadores em tempo real | ✅ |
+| 3.3 | Atualizar `editor_controller.js` | Integrar auto-save e contadores | ✅ |
 
 **Dependências:** Etapa 2
 
@@ -626,4 +626,66 @@ Etapa 1 ──→ Etapa 2 ──→ Etapa 3
 ---
 
 _Criado em: 26/07/2026_
-_Versão: 1.2_
+_Versão: 1.3_
+
+---
+
+### Etapa 3: Salvamento Automático e Contadores ✅
+
+**Status:** Concluída em 28/07/2026
+
+**Arquivos criados:**
+
+| Arquivo | Descrição |
+|---|---|
+| `app/javascript/controllers/auto_save_controller.js` | Stimulus controller dedicado a salvamento automático com debounce (30s), `sendBeacon` para beforeunload e detecção de visibilitychange |
+| `app/javascript/controllers/word_count_controller.js` | Stimulus controller para contadores de palavras e caracteres em tempo real, atualizando footer e sidebar |
+
+**Arquivos atualizados:**
+
+| Arquivo | Mudança |
+|---|---|
+| `app/javascript/controllers/editor_controller.js` | Removida lógica de auto-save e word count; agora despacha eventos `editor:contentChanged` e `editor:chapterChanged` para comunicação entre controllers; referencia do controller exposta via `element.editorController` |
+| `app/javascript/controllers/index.js` | Registrados controllers `auto-save` e `word-count` |
+| `app/views/books/write.html.erb` | Adicionados controllers `auto-save` e `word-count` ao elemento raiz; valores `data-auto-save-*` configurados; actions `beforeunload` e `visibilitychange` redirecionadas para `auto-save`; targets `data-word-count-target` atualizados no footer |
+
+**Funcionalidades implementadas:**
+
+1. **Salvamento Automático (30s de debounce)**
+   - Debounce configurável via `data-auto-save-debounce-ms-value` (padrão: 30000ms)
+   - Flag `dirty` rastreia conteúdo não salvo
+   - `sendBeacon` para `beforeunload` (garante salvamento ao fechar aba)
+   - `visibilitychange` triggera salvamento imediato quando aba perde foco
+   - Salvamento manual via `save()` chamado pelo editor ao trocar de capítulo
+   - Indicadores visuais: "Salvando..." → "Salvo às HH:MM" → "Erro ao salvar"
+   - Retry automático: se erro de rede, marca `dirty=true` para próximo ciclo
+
+2. **Contadores em Tempo Real**
+   - Atualização de palavras e caracteres a cada edição via evento `editor:contentChanged`
+   - Sincronização com sidebar (contagem de palavras por capítulo)
+   - Fallback para leitura do DOM se editor não estiver disponível
+   - Inicialização via `setTimeout` para garantir que editor esteja conecto primeiro
+
+3. **Comunicação entre Controllers (Custom Events)**
+   - `editor:contentChanged` — editor despacha com `{ wordCount, text }` a cada edição
+   - `editor:chapterChanged` — editor despacha com `{ chapterId }` ao trocar capítulo
+   - `chapter:selected` — chapter-panel despacha (mantido da Etapa 2)
+   - Auto-save e word-count escutam eventos no mesmo elemento DOM
+
+**Decisões tomadas:**
+
+1. **Separação de responsabilidades**: Auto-save e word count extraídos do editor controller para controllers dedicados (Single Responsibility)
+2. **Referência cruzada via `element.editorController`**: Permite que auto-save e word-count acessem o editor TipTap sem acoplamento direto — exposed no `connect()` do editor
+3. **Debounce de 30s**: Conforme especificação do plano (vs 5s que estava no código anterior)
+4. **`save()` retorna booleano**: Permite que `loadChapter()` verifique sucesso antes de trocar capítulo
+5. **Eventos Customizados como API**: Controllers se comunicam via eventos DOM, mantendo baixo acoplamento
+
+**Pendente:**
+
+- [ ] Testar em ambiente com PostgreSQL
+- [ ] Adicionar suporte a mobile (sidebar colapsável)
+
+**Correções pós-review (28/07/2026):**
+
+1. **Bug crítico: `markDirty()` nunca era chamado** — O auto-save controller definia `markDirty()` mas nenhum código o invocava, tornando todo o fluxo de auto-save inoperante. Corrigido adicionando listener para `editor:contentChanged` no `connect()` do auto-save controller.
+2. **Acesso inconsistente ao editor em `getEditorData()`** — Utilizava DOM query para encontrar o editor controller enquanto `showSaveStatus()` usava referência direta. Unificado para usar `this.editorController` em ambos os casos.

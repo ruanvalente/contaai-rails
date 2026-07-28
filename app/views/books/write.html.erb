@@ -1,16 +1,19 @@
 <% content_for(:title, "Editor - #{@book.title}") %>
 
 <div class="h-screen flex flex-col bg-[#F5F0EB]"
-     data-controller="editor chapter-panel"
+     data-controller="editor chapter-panel auto-save word-count"
      data-editor-book-id-value="<%= @book.id %>"
      data-editor-chapter-id-value="<%= @active_chapter&.id %>"
      data-editor-chapter-title-value="<%= @active_chapter&.title %>"
      data-editor-content-value="<%= @active_chapter&.content %>"
      data-chapter-panel-book-id-value="<%= @book.id %>"
      data-chapter-panel-active-chapter-id-value="<%= @active_chapter&.id %>"
+     data-auto-save-book-id-value="<%= @book.id %>"
+     data-auto-save-chapter-id-value="<%= @active_chapter&.id %>"
+     data-auto-save-debounce-ms-value="30000"
      data-action="chapter:selected->editor#loadChapter
-                 beforeunload@window->editor#saveBeforeUnload
-                 visibilitychange@document->editor#saveVisibilityChange">
+                 beforeunload@window->auto-save#saveOnBeforeUnload
+                 visibilitychange@document->auto-save#saveOnVisibilityChange">
 
   <header class="flex items-center justify-between px-4 py-3 bg-white border-b border-border-light">
     <div class="flex items-center gap-3">
@@ -119,8 +122,8 @@
 
       <footer data-editor-target="statusBar" class="flex items-center justify-between px-4 py-2 bg-white border-t border-border-light text-xs text-text-muted">
         <div class="flex items-center gap-4">
-          <span data-word-count>0 palavras</span>
-          <span data-char-count>0 caracteres</span>
+          <span data-word-count-target="wordCount">0 palavras</span>
+          <span data-word-count-target="charCount">0 caracteres</span>
         </div>
         <span data-save-status>Salvo automaticamente</span>
       </footer>
