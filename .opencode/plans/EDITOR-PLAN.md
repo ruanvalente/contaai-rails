@@ -33,15 +33,15 @@ Este plano detalha a criação do **componente de editor de escrita** do ContaAI
 
 ### O que já existe
 
-| Componente | Status | Observação |
-|---|---|---|
-| Model `Book` | ✅ Criado | Campos: `title`, `author_name`, `content`, `category`, `status`, `cover_color`, `word_count` |
-| `has_many :chapters` | ⚠️ Declarado | Referência no model, mas **não existe migration nem model Chapter** |
-| `has_one_attached :cover_image` | ✅ Criado | Active Storage configurado |
-| Controller `BooksController` | ✅ Criado | CRUD básico, `publish`, `read` — sem auto-save |
-| View `new.html.erb` | ✅ Criado | Formulário sem upload de imagem |
-| View `edit.html.erb` | ✅ Criado | Formulário de metadados, **sem editor de texto** |
-| Rotas | ✅ Criadas | `resources :books` com `publish` e `read` |
+| Componente                      | Status       | Observação                                                                                   |
+| ------------------------------- | ------------ | -------------------------------------------------------------------------------------------- |
+| Model `Book`                    | ✅ Criado    | Campos: `title`, `author_name`, `content`, `category`, `status`, `cover_color`, `word_count` |
+| `has_many :chapters`            | ⚠️ Declarado | Referência no model, mas **não existe migration nem model Chapter**                          |
+| `has_one_attached :cover_image` | ✅ Criado    | Active Storage configurado                                                                   |
+| Controller `BooksController`    | ✅ Criado    | CRUD básico, `publish`, `read` — sem auto-save                                               |
+| View `new.html.erb`             | ✅ Criado    | Formulário sem upload de imagem                                                              |
+| View `edit.html.erb`            | ✅ Criado    | Formulário de metadados, **sem editor de texto**                                             |
+| Rotas                           | ✅ Criadas   | `resources :books` com `publish` e `read`                                                    |
 
 ### O que falta
 
@@ -60,13 +60,13 @@ Este plano detalha a criação do **componente de editor de escrita** do ContaAI
 
 ### Stack do Editor
 
-| Camada | Tecnologia | Justificativa |
-|---|---|---|
-| Rich Text Editor | **TipTap** (via CDN) | Extensível, leve, headless, bom suporte a extensões |
-| Frontend交互 | **Stimulus** | Já no projeto, padrão Rails hotwire |
-| Comunicação | **Turbo Streams** | Salvamento async sem refresh |
-| Storage | **Active Storage** | Já configurado para capa |
-| Backend | **Rails 8 + PostgreSQL** | Stack existente |
+| Camada           | Tecnologia               | Justificativa                                       |
+| ---------------- | ------------------------ | --------------------------------------------------- |
+| Rich Text Editor | **TipTap** (via CDN)     | Extensível, leve, headless, bom suporte a extensões |
+| Frontend交互     | **Stimulus**             | Já no projeto, padrão Rails hotwire                 |
+| Comunicação      | **Turbo Streams**        | Salvamento async sem refresh                        |
+| Storage          | **Active Storage**       | Já configurado para capa                            |
+| Backend          | **Rails 8 + PostgreSQL** | Stack existente                                     |
 
 ### Por que TipTap?
 
@@ -78,12 +78,12 @@ Este plano detalha a criação do **componente de editor de escrita** do ContaAI
 
 ### Alternativa considerada
 
-| Lib | Prós | Contras | Veredicto |
-|---|---|---|---|
-| Quill | Simples, bem documentado | Menos extensível, UI rígida | ❌ |
-| Trix | Nativo Rails | Limitado para escrita longa, sem capítulos | ❌ |
-| TipTap | Extensível, headless, ProseMirror | Precisa de setup manual | ✅ |
-| CodeMirror | Poderoso | Overkill para rich text | ❌ |
+| Lib        | Prós                              | Contras                                    | Veredicto |
+| ---------- | --------------------------------- | ------------------------------------------ | --------- |
+| Quill      | Simples, bem documentado          | Menos extensível, UI rígida                | ❌        |
+| Trix       | Nativo Rails                      | Limitado para escrita longa, sem capítulos | ❌        |
+| TipTap     | Extensível, headless, ProseMirror | Precisa de setup manual                    | ✅        |
+| CodeMirror | Poderoso                          | Overkill para rich text                    | ❌        |
 
 ---
 
@@ -91,18 +91,19 @@ Este plano detalha a criação do **componente de editor de escrita** do ContaAI
 
 ### 4.1 Capítulo (Chapter)
 
-| Atributo | Tipo | Obrigatório | Descrição |
-|---|---|---|---|
-| `id` | UUID/Integer | Sim | Identificador único |
-| `book_id` | Integer | Sim | FK para Book |
-| `title` | String | Sim | Nome do capítulo |
-| `content` | Text | Não | Conteúdo HTML/JSON do capítulo |
-| `position` | Integer | Sim | Ordem do capítulo (default: 0) |
-| `word_count` | Integer | Sim | Contagem de palavras (default: 0) |
-| `created_at` | DateTime | Sim | Timestamp criação |
-| `updated_at` | DateTime | Sim | Timestamp atualização |
+| Atributo     | Tipo         | Obrigatório | Descrição                         |
+| ------------ | ------------ | ----------- | --------------------------------- |
+| `id`         | UUID/Integer | Sim         | Identificador único               |
+| `book_id`    | Integer      | Sim         | FK para Book                      |
+| `title`      | String       | Sim         | Nome do capítulo                  |
+| `content`    | Text         | Não         | Conteúdo HTML/JSON do capítulo    |
+| `position`   | Integer      | Sim         | Ordem do capítulo (default: 0)    |
+| `word_count` | Integer      | Sim         | Contagem de palavras (default: 0) |
+| `created_at` | DateTime     | Sim         | Timestamp criação                 |
+| `updated_at` | DateTime     | Sim         | Timestamp atualização             |
 
 **Índices:**
+
 - `[:book_id, :position]` — ordenação eficiente
 - `[:book_id]` — lookup por livro
 
@@ -118,14 +119,14 @@ has_many :chapters, -> { order(position: :asc) }, dependent: :destroy
 
 ### 4.3 Regras de Negócio
 
-| Regra | Descrição |
-|---|---|
-| RN-ED-001 | Um livro pode ter capítulos ou conteúdo contínuo (mutuamente exclusivos no UI) |
-| RN-ED-002 | Capítulos são ordenados por `position` (0-based) |
-| RN-ED-003 | Ao excluir um capítulo, positions são recalculadas |
-| RN-ED-004 | word_count do Book é a soma dos word_count dos chapters (ou do campo content) |
-| RN-ED-005 | Salvamento automático ocorre a cada 30 segundos de inatividade |
-| RN-ED-006 | Apenas o proprietário pode editar o conteúdo |
+| Regra     | Descrição                                                                            |
+| --------- | ------------------------------------------------------------------------------------ |
+| RN-ED-001 | Um livro pode ter capítulos ou conteúdo contínuo (mutuamente exclusivos no UI)       |
+| RN-ED-002 | Capítulos são ordenados por `position` (0-based)                                     |
+| RN-ED-003 | Ao excluir um capítulo, positions são recalculadas                                   |
+| RN-ED-004 | word_count do Book é a soma dos word_count dos chapters (ou do campo content)        |
+| RN-ED-005 | Salvamento automático ocorre a cada 30 segundos de inatividade                       |
+| RN-ED-006 | Apenas o proprietário pode editar o conteúdo                                         |
 | RN-ED-007 | Um livro só pode ser publicado se tiver título e pelo menos um capítulo com conteúdo |
 
 ---
@@ -138,13 +139,13 @@ has_many :chapters, -> { order(position: :asc) }, dependent: :destroy
 
 **Campos do Formulário:**
 
-| Campo | Tipo | Obrigatório | Padrão |
-|---|---|---|---|
-| Título | Texto | Sim | — |
-| Autor | Texto | Sim | Nome do usuário logado |
-| Categoria | Seleção | Sim | — |
-| Capa (imagem) | Upload | Não | — |
-| Cor da capa | Color picker | Não | `#8B4513` |
+| Campo         | Tipo         | Obrigatório | Padrão                 |
+| ------------- | ------------ | ----------- | ---------------------- |
+| Título        | Texto        | Sim         | —                      |
+| Autor         | Texto        | Sim         | Nome do usuário logado |
+| Categoria     | Seleção      | Sim         | —                      |
+| Capa (imagem) | Upload       | Não         | —                      |
+| Cor da capa   | Color picker | Não         | `#8B4513`              |
 
 **Fluxo:**
 
@@ -156,6 +157,7 @@ has_many :chapters, -> { order(position: :asc) }, dependent: :destroy
 6. Usuário é redirecionado para o editor de escrita
 
 **Validações:**
+
 - Formatos de imagem: JPG, PNG, WebP
 - Tamanho máximo: 5MB
 - Dimensões recomendadas: 600x900px (2:3)
@@ -195,20 +197,20 @@ has_many :chapters, -> { order(position: :asc) }, dependent: :destroy
 
 #### a) Toolbar de Formatação
 
-| Botão | Ação | Atalho |
-|---|---|---|
-| **B** | Negrito | `Ctrl+B` |
-| *I* | Itálico | `Ctrl+I` |
-| <u>U</u> | Sublinhado | `Ctrl+U` |
-| H1 | Título 1 | `Ctrl+1` |
-| H2 | Título 2 | `Ctrl+2` |
-| H3 | Título 3 | `Ctrl+3` |
-| — | Lista ordenada | — |
-| — | Lista não ordenada | — |
-| " | Citação | — |
-| — | Separador horizontal | — |
-| — | Desfazer | `Ctrl+Z` |
-| — | Refazer | `Ctrl+Y` |
+| Botão    | Ação                 | Atalho   |
+| -------- | -------------------- | -------- |
+| **B**    | Negrito              | `Ctrl+B` |
+| _I_      | Itálico              | `Ctrl+I` |
+| <u>U</u> | Sublinhado           | `Ctrl+U` |
+| H1       | Título 1             | `Ctrl+1` |
+| H2       | Título 2             | `Ctrl+2` |
+| H3       | Título 3             | `Ctrl+3` |
+| —        | Lista ordenada       | —        |
+| —        | Lista não ordenada   | —        |
+| "        | Citação              | —        |
+| —        | Separador horizontal | —        |
+| —        | Desfazer             | `Ctrl+Z` |
+| —        | Refazer              | `Ctrl+Y` |
 
 #### b) Painel de Capítulos (sidebar)
 
@@ -242,12 +244,12 @@ has_many :chapters, -> { order(position: :asc) }, dependent: :destroy
 
 **Mecanismo:**
 
-| Trigger | Comportamento |
-|---|---|
-| Inatividade de 30s | PATCH `/books/:id/chapters/:chapter_id` com conteúdo |
-| Mudança de capítulo | Salva capítulo anterior antes de trocar |
-| Visibilidade da aba perde foco | Salva imediatamente |
-| Fechar navegação | `beforeunload` salva via beacon API |
+| Trigger                        | Comportamento                                        |
+| ------------------------------ | ---------------------------------------------------- |
+| Inatividade de 30s             | PATCH `/books/:id/chapters/:chapter_id` com conteúdo |
+| Mudança de capítulo            | Salva capítulo anterior antes de trocar              |
+| Visibilidade da aba perde foco | Salva imediatamente                                  |
+| Fechar navegação               | `beforeunload` salva via beacon API                  |
 
 **Endpoints:**
 
@@ -262,6 +264,7 @@ POST /books/:book_id/chapters
 ```
 
 **Indicadores visuais:**
+
 - `Salvando...` → ícone de loading
 - `Salvo às 12:34` → texto verde sutil
 - `Erro ao salvar` → toast de erro com retry
@@ -282,6 +285,7 @@ POST /books/:book_id/chapters
 6. Salvamento via Active Storage
 
 **Restrições:**
+
 - Formatos: JPG, PNG, WebP
 - Máximo: 5MB
 - Proporção: 2:3 (600x900px recomendado)
@@ -293,6 +297,7 @@ POST /books/:book_id/chapters
 **Objetivo**: Tornar o livro disponível publicamente.
 
 **Pré-condições (validações):**
+
 - Título não pode estar vazio
 - Pelo menos um capítulo com conteúdo (word_count > 0)
 - Categoria deve estar definida
@@ -312,6 +317,7 @@ POST /books/:book_id/chapters
 8. Link público gerado para compartilhamento
 
 **Regras:**
+
 - Ação reversível (despublicar → volta para draft)
 - Se for primeira publicação do usuário, seu papel muda para Autor
 
@@ -331,6 +337,7 @@ POST /books/:book_id/chapters
 6. Toast de confirmação
 
 **Regras:**
+
 - Irreversível
 - Apenas o proprietário pode excluir
 - Avaliações e favoritos associados são removidos (via `dependent: :destroy`)
@@ -342,37 +349,37 @@ POST /books/:book_id/chapters
 
 ### Paleta (resumo do PROJECT_PLAN)
 
-| Elemento | Cor | Uso no Editor |
-|---|---|---|
-| Fundo do editor | `#F5F0EB` | Background da área de escrita |
-| Toolbar | `#FFFFFF` | Fundo da barra de formatação |
-| Sidebar capítulos | `#F5E6D3` | Painel lateral |
-| Texto principal | `#2F241C` | Conteúdo escrito |
-| Texto secundário | `#6B7280` | Labels, contadores |
-| Destaque/Hover | `#C2A47E` | Capítulo ativo, botões |
-| Primary (botão) | `#8B7355` | Botão publicar |
-| Error | `#DC2626` | Excluir, erros |
+| Elemento          | Cor       | Uso no Editor                 |
+| ----------------- | --------- | ----------------------------- |
+| Fundo do editor   | `#F5F0EB` | Background da área de escrita |
+| Toolbar           | `#FFFFFF` | Fundo da barra de formatação  |
+| Sidebar capítulos | `#F5E6D3` | Painel lateral                |
+| Texto principal   | `#2F241C` | Conteúdo escrito              |
+| Texto secundário  | `#6B7280` | Labels, contadores            |
+| Destaque/Hover    | `#C2A47E` | Capítulo ativo, botões        |
+| Primary (botão)   | `#8B7355` | Botão publicar                |
+| Error             | `#DC2626` | Excluir, erros                |
 
 ### Tipografia no Editor
 
-| Elemento | Fonte | Peso | Tamanho |
-|---|---|---|---|
-| Conteúdo escrito | Cormorant Garamond | 400 | 18px |
-| Toolbar | Inter | 500 | 14px |
-| Sidebar capítulos | Inter | 400 | 14px |
-| Título do livro (header) | Playfair Display | 600 | 20px |
-| Contadores (footer) | Inter | 400 | 12px |
+| Elemento                 | Fonte              | Peso | Tamanho |
+| ------------------------ | ------------------ | ---- | ------- |
+| Conteúdo escrito         | Cormorant Garamond | 400  | 18px    |
+| Toolbar                  | Inter              | 500  | 14px    |
+| Sidebar capítulos        | Inter              | 400  | 14px    |
+| Título do livro (header) | Playfair Display   | 600  | 20px    |
+| Contadores (footer)      | Inter              | 400  | 12px    |
 
 ### Micro-interações
 
-| Elemento | Comportamento |
-|---|---|
-| Capítulo ativo | Background `#C2A47E` com 10% opacidade, borda esquerda 3px |
-| Hover no capítulo | Background `#C2A47E` com 5% opacidade |
-| Botão salvar | Animação de checkmark ao confirmar |
-| Indicador de salvamento | Fade-in/out suave |
-| Adicionar capítulo | Slide-down com animação |
-| Excluir capítulo | Slide-up + fade-out |
+| Elemento                | Comportamento                                              |
+| ----------------------- | ---------------------------------------------------------- |
+| Capítulo ativo          | Background `#C2A47E` com 10% opacidade, borda esquerda 3px |
+| Hover no capítulo       | Background `#C2A47E` com 5% opacidade                      |
+| Botão salvar            | Animação de checkmark ao confirmar                         |
+| Indicador de salvamento | Fade-in/out suave                                          |
+| Adicionar capítulo      | Slide-down com animação                                    |
+| Excluir capítulo        | Slide-up + fade-out                                        |
 
 ---
 
@@ -382,13 +389,13 @@ POST /books/:book_id/chapters
 
 **Arquivos:** 5 arquivos (3 novos, 2 atualizados)
 
-| # | Arquivo | Ação | Status |
-|---|---|---|---|
-| 1.1 | `app/models/chapter.rb` | Criar model com validações | ✅ |
-| 1.2 | `db/migrate/20260726000001_create_chapters.rb` | Migration com índices | ✅ |
-| 1.3 | `app/controllers/chapters_controller.rb` | CRUD + reordenação | ✅ |
-| 1.4 | `config/routes.rb` | Adicionar `resources :chapters` nested em books | ✅ |
-| 1.5 | `app/models/book.rb` | Atualizar associations e adicionar validações | ✅ |
+| #   | Arquivo                                        | Ação                                            | Status |
+| --- | ---------------------------------------------- | ----------------------------------------------- | ------ |
+| 1.1 | `app/models/chapter.rb`                        | Criar model com validações                      | ✅     |
+| 1.2 | `db/migrate/20260726000001_create_chapters.rb` | Migration com índices                           | ✅     |
+| 1.3 | `app/controllers/chapters_controller.rb`       | CRUD + reordenação                              | ✅     |
+| 1.4 | `config/routes.rb`                             | Adicionar `resources :chapters` nested em books | ✅     |
+| 1.5 | `app/models/book.rb`                           | Atualizar associations e adicionar validações   | ✅     |
 
 **Dependências:** Nenhuma (pode ser feito isoladamente)
 
@@ -398,13 +405,13 @@ POST /books/:book_id/chapters
 
 **Arquivos:** 5 arquivos
 
-| # | Arquivo | Ação |
-|---|---|---|
-| 2.1 | `app/javascript/controllers/editor_controller.js` | Stimulus controller para TipTap |
-| 2.2 | `app/javascript/controllers/chapter_panel_controller.js` | Painel lateral de capítulos |
-| 2.3 | `app/views/books/write.html.erb` | View principal do editor |
-| 2.4 | `app/views/chapters/_chapter.json.jbuilder` | Partial JSON para Turbo |
-| 2.5 | `app/views/chapters/create.turbo_stream.erb` | Resposta Turbo Stream |
+| #   | Arquivo                                                  | Ação                            |
+| --- | -------------------------------------------------------- | ------------------------------- |
+| 2.1 | `app/javascript/controllers/editor_controller.js`        | Stimulus controller para TipTap |
+| 2.2 | `app/javascript/controllers/chapter_panel_controller.js` | Painel lateral de capítulos     |
+| 2.3 | `app/views/books/write.html.erb`                         | View principal do editor        |
+| 2.4 | `app/views/chapters/_chapter.json.jbuilder`              | Partial JSON para Turbo         |
+| 2.5 | `app/views/chapters/create.turbo_stream.erb`             | Resposta Turbo Stream           |
 
 **Dependências:** Etapa 1
 
@@ -414,11 +421,11 @@ POST /books/:book_id/chapters
 
 **Arquivos:** 3 arquivos
 
-| # | Arquivo | Ação | Status |
-|---|---|---|---|
-| 3.1 | `app/javascript/controllers/auto_save_controller.js` | Lógica de debounce + beacon | ✅ |
-| 3.2 | `app/javascript/controllers/word_count_controller.js` | Contadores em tempo real | ✅ |
-| 3.3 | Atualizar `editor_controller.js` | Integrar auto-save e contadores | ✅ |
+| #   | Arquivo                                               | Ação                            | Status |
+| --- | ----------------------------------------------------- | ------------------------------- | ------ |
+| 3.1 | `app/javascript/controllers/auto_save_controller.js`  | Lógica de debounce + beacon     | ✅     |
+| 3.2 | `app/javascript/controllers/word_count_controller.js` | Contadores em tempo real        | ✅     |
+| 3.3 | Atualizar `editor_controller.js`                      | Integrar auto-save e contadores | ✅     |
 
 **Dependências:** Etapa 2
 
@@ -428,11 +435,11 @@ POST /books/:book_id/chapters
 
 **Arquivos:** 3 arquivos
 
-| # | Arquivo | Ação |
-|---|---|---|
-| 4.1 | `app/javascript/controllers/cover_upload_controller.js` | Preview, drag-and-drop |
-| 4.2 | Atualizar `new.html.erb` | Adicionar upload de capa |
-| 4.3 | Atualizar `edit.html.erb` | Adicionar upload + link para editor |
+| #   | Arquivo                                                 | Ação                                |
+| --- | ------------------------------------------------------- | ----------------------------------- |
+| 4.1 | `app/javascript/controllers/cover_upload_controller.js` | Preview, drag-and-drop              |
+| 4.2 | Atualizar `new.html.erb`                                | Adicionar upload de capa            |
+| 4.3 | Atualizar `edit.html.erb`                               | Adicionar upload + link para editor |
 
 **Dependências:** Etapa 2
 
@@ -442,11 +449,15 @@ POST /books/:book_id/chapters
 
 **Arquivos:** 3 arquivos
 
-| # | Arquivo | Ação |
-|---|---|---|
-| 5.1 | `app/views/books/_publish_modal.html.erb` | Modal de confirmação |
-| 5.2 | `app/javascript/controllers/publish_controller.js` | Lógica do modal + validação |
-| 5.3 | Atualizar `books_controller.rb` | Reforçar validações no `publish` |
+| #   | Arquivo                                            | Ação                             | Status |
+| --- | -------------------------------------------------- | -------------------------------- | ------ |
+| 5.1 | `app/views/books/_publish_modal.html.erb`          | Modal de confirmação             | ✅     |
+| 5.2 | `app/views/books/_delete_modal.html.erb`           | Modal de exclusão com confirmação | ✅     |
+| 5.3 | `app/javascript/controllers/publish_controller.js` | Lógica do modal + validação      | ✅     |
+| 5.4 | Atualizar `books_controller.rb`                    | Reforçar validações + unpublish  | ✅     |
+| 5.5 | Atualizar `write.html.erb`                         | Integrar modais publish/delete   | ✅     |
+| 5.6 | Atualizar `config/routes.rb`                       | Adicionar rota `unpublish`       | ✅     |
+| 5.7 | Atualizar `show.html.erb`                          | Botão despublicar para owner     | ✅     |
 
 **Dependências:** Etapas 1-4
 
@@ -502,12 +513,12 @@ Etapa 1 ──→ Etapa 2 ──→ Etapa 3
 
 ## Referências
 
-| Documento | Seção |
-|---|---|
+| Documento         | Seção                                                      |
+| ----------------- | ---------------------------------------------------------- |
 | `PROJECT_PLAN.md` | F-BOOK-001, F-BOOK-002, F-BOOK-003, F-BOOK-004, F-BOOK-005 |
-| `PROJECT_PLAN.md` | Fase 1: Core de Criação |
-| `PROJECT_PLAN.md` | §4 Identidade Visual |
-| `AGENTS.md` | Skills e convenções do projeto |
+| `PROJECT_PLAN.md` | Fase 1: Core de Criação                                    |
+| `PROJECT_PLAN.md` | §4 Identidade Visual                                       |
+| `AGENTS.md`       | Skills e convenções do projeto                             |
 
 ---
 
@@ -519,17 +530,17 @@ Etapa 1 ──→ Etapa 2 ──→ Etapa 3
 
 **Arquivos criados:**
 
-| Arquivo | Descrição |
-|---|---|
-| `app/models/chapter.rb` | Model com validações, callbacks de posição e contagem de palavras |
-| `db/migrate/20260726000001_create_chapters.rb` | Migration com índices `book_id` e `[book_id, position]` |
-| `app/controllers/chapters_controller.rb` | CRUD completo + endpoint `reorder` com transação |
+| Arquivo                                        | Descrição                                                         |
+| ---------------------------------------------- | ----------------------------------------------------------------- |
+| `app/models/chapter.rb`                        | Model com validações, callbacks de posição e contagem de palavras |
+| `db/migrate/20260726000001_create_chapters.rb` | Migration com índices `book_id` e `[book_id, position]`           |
+| `app/controllers/chapters_controller.rb`       | CRUD completo + endpoint `reorder` com transação                  |
 
 **Arquivos atualizados:**
 
-| Arquivo | Mudança |
-|---|---|
-| `config/routes.rb` | Adicionado `resources :chapters` nested em `books` com rota `reorder` |
+| Arquivo              | Mudança                                                                                                                      |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `config/routes.rb`   | Adicionado `resources :chapters` nested em `books` com rota `reorder`                                                        |
 | `app/models/book.rb` | Adicionado escopo `ordered` no `has_many :chapters`, validações, métodos `total_word_count`, `has_chapters?`, `publishable?` |
 
 **Decisões tomadas:**
@@ -552,23 +563,23 @@ Etapa 1 ──→ Etapa 2 ──→ Etapa 3
 
 **Arquivos criados:**
 
-| Arquivo | Descrição |
-|---|---|
-| `app/javascript/controllers/editor_controller.js` | Stimulus controller para TipTap com toolbar, auto-save e contadores |
+| Arquivo                                                  | Descrição                                                               |
+| -------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `app/javascript/controllers/editor_controller.js`        | Stimulus controller para TipTap com toolbar, auto-save e contadores     |
 | `app/javascript/controllers/chapter_panel_controller.js` | Painel lateral com CRUD de capítulos, drag-and-drop e renomeação inline |
-| `app/views/books/write.html.erb` | View principal do editor com layout completo |
-| `app/views/chapters/_chapter.json.jbuilder` | Partial JSON para serialização de capítulos |
-| `app/views/chapters/create.turbo_stream.erb` | Resposta Turbo Stream para criação de capítulos |
+| `app/views/books/write.html.erb`                         | View principal do editor com layout completo                            |
+| `app/views/chapters/_chapter.json.jbuilder`              | Partial JSON para serialização de capítulos                             |
+| `app/views/chapters/create.turbo_stream.erb`             | Resposta Turbo Stream para criação de capítulos                         |
 
 **Arquivos atualizados:**
 
-| Arquivo | Mudança |
-|---|---|
-| `app/controllers/books_controller.rb` | Adicionada action `write` com carregamento de capítulos |
-| `config/routes.rb` | Adicionada rota `get :write` em member do resource books |
-| `app/javascript/controllers/index.js` | Registrados controllers `editor` e `chapter-panel` |
-| `package.json` | Adicionadas dependências `@tiptap/core`, `@tiptap/starter-kit`, `@tiptap/pm` |
-| `app/views/books/show.html.erb` | Adicionado link "Escrever" para acessar o editor |
+| Arquivo                               | Mudança                                                                      |
+| ------------------------------------- | ---------------------------------------------------------------------------- |
+| `app/controllers/books_controller.rb` | Adicionada action `write` com carregamento de capítulos                      |
+| `config/routes.rb`                    | Adicionada rota `get :write` em member do resource books                     |
+| `app/javascript/controllers/index.js` | Registrados controllers `editor` e `chapter-panel`                           |
+| `package.json`                        | Adicionadas dependências `@tiptap/core`, `@tiptap/starter-kit`, `@tiptap/pm` |
+| `app/views/books/show.html.erb`       | Adicionado link "Escrever" para acessar o editor                             |
 
 **Dependências npm instaladas:**
 
@@ -636,18 +647,18 @@ _Versão: 1.3_
 
 **Arquivos criados:**
 
-| Arquivo | Descrição |
-|---|---|
-| `app/javascript/controllers/auto_save_controller.js` | Stimulus controller dedicado a salvamento automático com debounce (30s), `sendBeacon` para beforeunload e detecção de visibilitychange |
-| `app/javascript/controllers/word_count_controller.js` | Stimulus controller para contadores de palavras e caracteres em tempo real, atualizando footer e sidebar |
+| Arquivo                                               | Descrição                                                                                                                              |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `app/javascript/controllers/auto_save_controller.js`  | Stimulus controller dedicado a salvamento automático com debounce (30s), `sendBeacon` para beforeunload e detecção de visibilitychange |
+| `app/javascript/controllers/word_count_controller.js` | Stimulus controller para contadores de palavras e caracteres em tempo real, atualizando footer e sidebar                               |
 
 **Arquivos atualizados:**
 
-| Arquivo | Mudança |
-|---|---|
-| `app/javascript/controllers/editor_controller.js` | Removida lógica de auto-save e word count; agora despacha eventos `editor:contentChanged` e `editor:chapterChanged` para comunicação entre controllers; referencia do controller exposta via `element.editorController` |
-| `app/javascript/controllers/index.js` | Registrados controllers `auto-save` e `word-count` |
-| `app/views/books/write.html.erb` | Adicionados controllers `auto-save` e `word-count` ao elemento raiz; valores `data-auto-save-*` configurados; actions `beforeunload` e `visibilitychange` redirecionadas para `auto-save`; targets `data-word-count-target` atualizados no footer |
+| Arquivo                                           | Mudança                                                                                                                                                                                                                                           |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app/javascript/controllers/editor_controller.js` | Removida lógica de auto-save e word count; agora despacha eventos `editor:contentChanged` e `editor:chapterChanged` para comunicação entre controllers; referencia do controller exposta via `element.editorController`                           |
+| `app/javascript/controllers/index.js`             | Registrados controllers `auto-save` e `word-count`                                                                                                                                                                                                |
+| `app/views/books/write.html.erb`                  | Adicionados controllers `auto-save` e `word-count` ao elemento raiz; valores `data-auto-save-*` configurados; actions `beforeunload` e `visibilitychange` redirecionadas para `auto-save`; targets `data-word-count-target` atualizados no footer |
 
 **Funcionalidades implementadas:**
 
@@ -698,17 +709,17 @@ _Versão: 1.3_
 
 **Arquivos criados:**
 
-| Arquivo | Descrição |
-|---|---|
+| Arquivo                                                 | Descrição                                                                                                  |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | `app/javascript/controllers/cover_upload_controller.js` | Stimulus controller para upload de capa com drag-and-drop, preview, validação de formato/tamanho e remoção |
 
 **Arquivos atualizados:**
 
-| Arquivo | Mudança |
-|---|---|
-| `app/javascript/controllers/index.js` | Registrado controller `cover-upload` |
-| `app/views/books/new.html.erb` | Adicionado componente de upload de capa com drag-and-drop, preview, validação e color picker |
-| `app/views/books/edit.html.erb` | Adicionado upload de capa com preview de imagem existente, seção de ações com links "Escrever" e "Ver Publicação" |
+| Arquivo                               | Mudança                                                                                                            |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `app/javascript/controllers/index.js` | Registrado controller `cover-upload`                                                                               |
+| `app/views/books/new.html.erb`        | Adicionado componente de upload de capa com drag-and-drop, preview, validação e color picker                       |
+| `app/views/books/edit.html.erb`       | Adicionado upload de capa com preview de imagem existente, seção de ações com links "Escrever" e "Ver Publicação"  |
 | `app/controllers/books_controller.rb` | Adicionado `cover_image` nos params, método `handle_cover_removal`, redirecionamento para `write` após criar livro |
 
 **Funcionalidades implementadas:**
@@ -751,3 +762,85 @@ _Versão: 1.3_
 - [ ] Testar em ambiente com PostgreSQL
 - [ ] Adicionar suporte a mobile (sidebar colapsável)
 - [ ] Crop de imagem (proporção 2:3 fixa) — pode ser feito em etapa futura
+
+---
+
+### Etapa 5: Publicação e Exclusão ✅
+
+**Status:** Concluída em 28/07/2026
+
+**Arquivos criados:**
+
+| Arquivo                                            | Descrição                                                                                                        |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `app/views/books/_publish_modal.html.erb`          | Modal de publicação com preview de capa, sinopse e checklist visual de pré-condições (título, capítulos, categoria) |
+| `app/views/books/_delete_modal.html.erb`           | Modal de exclusão com confirmação por digitação do título do livro                                                |
+| `app/javascript/controllers/publish_controller.js` | Stimulus controller com lógica de abertura/fechamento de modais, publicação via AJAX, exclusão com validação e toast customizado |
+
+**Arquivos atualizados:**
+
+| Arquivo                               | Mudança                                                                                                                                                                                      |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app/controllers/books_controller.rb` | Action `publish` reforçada com 3 camadas de validação (autorização, status draft, publishable?) com suporte a JSON; nova action `unpublish`; `destroy` com suporte a JSON                     |
+| `app/views/books/write.html.erb`      | Controller `publish` integrado ao elemento raiz; botão "Publicar" abre modal ao invés de turbo_confirm; botão "Excluir" na barra de status; modais renderizados no final do template         |
+| `app/views/books/show.html.erb`       | Botão "Despublicar" adicionado na seção de ações do proprietário quando livro está publicado                                                                                                 |
+| `config/routes.rb`                    | Adicionada rota `patch :unpublish` como member route em books                                                                                                                                |
+| `app/javascript/controllers/index.js` | Registrado controller `publish`                                                                                                                                                              |
+
+**Funcionalidades implementadas:**
+
+1. **Modal de Publicação (F-ED-005)**
+   - Preview da capa (imagem ou placeholder com cor)
+   - Sinopse do livro (ou "Sem sinopse")
+   - Checklist visual com 3 itens: título, capítulo com conteúdo, categoria
+   - Cada item mostra ícone de ✓ (verde) ou ✗ (vermelho) conforme validação
+   - Botão "Publicar" desabilitado quando publishable? retorna false
+   - Loading state durante requisição AJAX
+   - Publicação via `fetch()` com PATCH + Accept JSON
+   - Reload da página em caso de sucesso; toast de erro em caso de falha
+
+2. **Modal de Exclusão (F-ED-006)**
+   - Aviso: "Esta ação não pode ser desfeita"
+   - Campo de input para digitação do título exato do livro
+   - Botão "Excluir" só habilita quando título confere (case-sensitive, trim)
+   - Mensagem de erro "O título não confere" quando input não bate
+   - Exclusão via `fetch()` com DELETE
+   - Redirecionamento para `/dashboard` em caso de sucesso
+   - Loading state com texto "Excluindo..."
+
+3. **Despublicar (Reversibilidade)**
+   - Nova rota `PATCH /books/:id/unpublish`
+   - Action `unpublish` muda status para `draft` e limpa `published_at`
+   - Botão "Publicado" no header do editor vira link para despublicar (com turbo_confirm)
+   - Botão "Despublicar" na página show do livro (apenas para owner)
+
+4. **Reforço de Validações no Backend**
+   - `publish`: 3 guard clauses com `respond_to` para HTML e JSON
+     - Verifica ownership (`@book.user == current_user`)
+     - Verifica status draft (`@book.draft?`)
+     - Verifica publishable? (`title + chapters + category`)
+   - Cada falha retorna mensagem de erro apropriada e status HTTP correto (403/422)
+   - `destroy`: suporte a JSON (`head :no_content`) para AJAX
+
+5. **Toast Customizado**
+   - Controller `publish` inclui método `showToast(message, type)` que cria toasts inline
+   - Suporte a tipos `success` e `error` com ícones e cores apropriadas
+   - Auto-dismiss após 5 segundos com animação de fade-out
+
+**Decisões tomadas:**
+
+1. **Dois modais separados**: Publicação e exclusão ficam em partials distintos (`_publish_modal` e `_delete_modal`) para reutilização e responsabilidade única
+2. **Publicação via AJAX**: Usa `fetch()` ao invés de turbo_method para controle total sobre loading states e tratamento de erros
+3. **Confirmação por digitação**: Exclusão requer digitação exata do título (não apenas "digitar EXCLUIR") para forçar atenção do usuário
+4. **Despublicar como ação separada**: Nova rota `unpublish` ao invés de reusar `publish` com toggle — mais explícito e seguro
+5. **publishable? reutilizado**: Checklist do modal usa a mesma lógica `publishable?` do model, garantindo consistência entre UI e backend
+6. **Toast inline**: Criado pelo controller JS ao invés de depender do sistema de flash do Rails — necessário porque AJAX não renderiza layout
+
+**Pendente:**
+
+- [ ] Testar em ambiente com PostgreSQL
+- [ ] Adicionar suporte a mobile (sidebar colapsável)
+
+---
+
+_Versão: 1.4 — 28/07/2026_

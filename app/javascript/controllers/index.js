@@ -36,3 +36,6 @@ application.register("word-count", WordCountController)
 
 import CoverUploadController from "./cover_upload_controller"
 application.register("cover-upload", CoverUploadController)
+
+import PublishController from "./publish_controller"
+application.register("publish", PublishController)
