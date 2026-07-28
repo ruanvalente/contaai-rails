@@ -33,3 +33,6 @@ application.register("auto-save", AutoSaveController)
 
 import WordCountController from "./word_count_controller"
 application.register("word-count", WordCountController)
+
+import CoverUploadController from "./cover_upload_controller"
+application.register("cover-upload", CoverUploadController)

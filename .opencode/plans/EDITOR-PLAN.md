@@ -689,3 +689,65 @@ _Versão: 1.3_
 
 1. **Bug crítico: `markDirty()` nunca era chamado** — O auto-save controller definia `markDirty()` mas nenhum código o invocava, tornando todo o fluxo de auto-save inoperante. Corrigido adicionando listener para `editor:contentChanged` no `connect()` do auto-save controller.
 2. **Acesso inconsistente ao editor em `getEditorData()`** — Utilizava DOM query para encontrar o editor controller enquanto `showSaveStatus()` usava referência direta. Unificado para usar `this.editorController` em ambos os casos.
+
+---
+
+### Etapa 4: Upload de Capa e Metadados ✅
+
+**Status:** Concluída em 28/07/2026
+
+**Arquivos criados:**
+
+| Arquivo | Descrição |
+|---|---|
+| `app/javascript/controllers/cover_upload_controller.js` | Stimulus controller para upload de capa com drag-and-drop, preview, validação de formato/tamanho e remoção |
+
+**Arquivos atualizados:**
+
+| Arquivo | Mudança |
+|---|---|
+| `app/javascript/controllers/index.js` | Registrado controller `cover-upload` |
+| `app/views/books/new.html.erb` | Adicionado componente de upload de capa com drag-and-drop, preview, validação e color picker |
+| `app/views/books/edit.html.erb` | Adicionado upload de capa com preview de imagem existente, seção de ações com links "Escrever" e "Ver Publicação" |
+| `app/controllers/books_controller.rb` | Adicionado `cover_image` nos params, método `handle_cover_removal`, redirecionamento para `write` após criar livro |
+
+**Funcionalidades implementadas:**
+
+1. **Upload de Capa com Drag-and-Drop**
+   - Zona de drop com indicadores visuais (mudança de cor ao arrastar)
+   - Clique na zona abre seletor de arquivo
+   - Suporte a arrastar e soltar arquivos
+
+2. **Preview e Validação**
+   - Preview imediato da imagem selecionada
+   - Validação de formato: JPG, PNG, WebP
+   - Validação de tamanho: máximo 5MB
+   - Mensagens de erro claras
+
+3. **Remoção de Capa**
+   - Botão de remoção no preview (ícone X)
+   - Input hidden `remove_cover` para comunicação com backend
+   - Backend usa `purge_later` para remoção assíncrona
+
+4. **Fluxo de Criação Atualizado**
+   - Ao criar livro, usuário é redirecionado para o editor (`write` path)
+   - Toast: "Livro criado com sucesso. Comece a escrever!"
+
+5. **View de Edição Atualizada**
+   - Preview de capa existente (se houver)
+   - Seção "Ações" com links para:
+     - "Escrever / Editar Conteúdo" → editor
+     - "Ver Publicação" → página do livro (se publicado)
+
+**Decisões tomadas:**
+
+1. **Upload via form multipart**: Usa `name="book[cover_image]"` para compatibilidade com Active Storage sem JS extra
+2. **Remoção via hidden input**: `remove_cover=1` sinaliza ao backend para purgar a imagem
+3. **Redirecionamento para editor**: Após criar livro, redireciona para `write` ao invés de `show` para melhor experiência de escrita
+4. **Preview de imagem existente**: No edit, renderiza imagem via `url_for(@book.cover_image)` se anexada
+
+**Pendente:**
+
+- [ ] Testar em ambiente com PostgreSQL
+- [ ] Adicionar suporte a mobile (sidebar colapsável)
+- [ ] Crop de imagem (proporção 2:3 fixa) — pode ser feito em etapa futura
