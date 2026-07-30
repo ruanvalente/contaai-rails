@@ -1,6 +1,6 @@
 <div data-publish-target="modal"
      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm"
-     data-action="click->publish#onBackdropClick:keydown.esc->publish#close">
+     data-action="click->publish#onBackdropClick keydown.esc->publish#close">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden"
        data-action="click->publish#onModalClick">
 
@@ -85,8 +85,8 @@
       </button>
       <button data-action="click->publish#confirm"
               data-publish-target="confirmButton"
-              class="px-4 py-2 text-sm font-medium text-white bg-[#8B7355] hover:bg-[#7A6548] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              <%= 'disabled' unless @book.publishable? %>>
+              <%= 'disabled' unless @book.publishable? %>
+              class="px-4 py-2 text-sm font-medium text-white bg-[#8B7355] hover:bg-[#7A6548] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
         <span data-publish-target="confirmText">Publicar</span>
         <span data-publish-target="confirmLoading" class="hidden">
           <svg class="animate-spin inline w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>

@@ -16,7 +16,7 @@ class BooksController < ApplicationController
   def create
     @book = current_user.books.build(book_params)
     if @book.save
-      redirect_to write_book_path(@book), notice: "Livro criado com sucesso. Comece a escrever!"
+      redirect_to @book, notice: "Livro criado com sucesso."
     else
       render :new, status: :unprocessable_entity
     end
@@ -80,7 +80,8 @@ class BooksController < ApplicationController
       return
     end
 
-    @book.update(status: :published, published_at: Time.current)
+    full_content = @book.chapters.ordered.map { |c| "## #{c.title}\n\n#{c.content}" }.join("\n\n")
+    @book.update(status: :published, published_at: Time.current, content: full_content)
 
     respond_to do |f|
       f.html { redirect_to @book, notice: "Livro publicado com sucesso." }
