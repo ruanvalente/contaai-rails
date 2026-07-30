@@ -147,8 +147,10 @@ export default class extends Controller {
     )
 
     if (autoSaveCtrl) {
-      const saved = await autoSaveCtrl.save()
-      if (!saved) return
+      if (autoSaveCtrl.chapterIdValue) {
+        const saved = await autoSaveCtrl.save()
+        if (!saved) return
+      }
       autoSaveCtrl.updateChapterId(chapterId)
     }
 

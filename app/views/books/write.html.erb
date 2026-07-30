@@ -4,15 +4,15 @@
      data-controller="editor chapter-panel auto-save word-count publish"
      data-editor-book-id-value="<%= @book.id %>"
      data-editor-chapter-id-value="<%= @active_chapter&.id %>"
-     data-editor-chapter-title-value="<%= @active_chapter&.title %>"
-     data-editor-content-value="<%= @active_chapter&.content %>"
+      data-editor-chapter-title-value="<%= @active_chapter&.title %>"
+      data-editor-content-value="<%= @active_chapter&.content %>"
      data-chapter-panel-book-id-value="<%= @book.id %>"
      data-chapter-panel-active-chapter-id-value="<%= @active_chapter&.id %>"
      data-auto-save-book-id-value="<%= @book.id %>"
      data-auto-save-chapter-id-value="<%= @active_chapter&.id %>"
      data-auto-save-debounce-ms-value="30000"
      data-publish-book-id-value="<%= @book.id %>"
-     data-publish-book-title-value="<%= @book.title %>"
+      data-publish-book-title-value="<%= @book.title %>"
      data-publish-publishable-value="<%= @book.publishable? %>"
      data-publish-publish-url-value="<%= publish_book_path(@book) %>"
      data-publish-delete-url-value="<%= book_path(@book) %>"
@@ -33,7 +33,7 @@
     <div class="flex items-center gap-2">
       <% if @book.draft? %>
         <button data-action="click->publish#open"
-                class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#8B7355] text-white text-sm font-medium rounded-lg hover:bg-[#7A6548] transition-colors">
+                class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#8B7355] text-white text-sm font-medium rounded-lg hover:bg-[#7A6548] transition-colors hover:cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
           Publicar
         </button>
@@ -135,13 +135,16 @@
           <span data-save-status>Salvo automaticamente</span>
           <div class="h-4 w-px bg-border-light"></div>
           <button data-action="click->publish#openDeleteModal"
-                  class="text-error hover:text-red-700 transition-colors font-medium">
+                  class="text-error hover:text-red-700 transition-colors font-medium hover:cursor-pointer">
             Excluir
           </button>
         </div>
       </footer>
     </main>
   </div>
+
+  <%= render "publish_modal" %>
+  <%= render "delete_modal" %>
 </div>
 
 <style>
@@ -154,6 +157,3 @@
     to { opacity: 0; transform: translateY(-10px); }
   }
 </style>
-
-<%= render "publish_modal" %>
-<%= render "delete_modal" %>

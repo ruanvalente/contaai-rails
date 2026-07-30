@@ -15,7 +15,40 @@ export default class extends Controller {
     deleteUrl: String
   }
 
-  open() {
+  async open() {
+    const autoSaveCtrl = this.application.getControllerForElementAndIdentifier(
+      this.element,
+      "auto-save"
+    )
+    if (autoSaveCtrl) {
+      await autoSaveCtrl.save()
+    }
+
+    const editorCtrl = this.application.getControllerForElementAndIdentifier(
+      this.element,
+      "editor"
+    )
+    const hasContent = editorCtrl?.editor?.getText()?.trim()?.length > 0
+    const titleOk = this.titleCheckTarget.querySelector(".text-success") !== null
+    const categoryOk = this.categoryCheckTarget.querySelector(".text-success") !== null
+
+    if (hasContent) {
+      this.chapterCheckTarget.innerHTML = `
+        <span class="flex items-center justify-center w-5 h-5 rounded-full bg-success/10 text-success">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </span>
+        <span class="text-text-primary">Pelo menos um capítulo com conteúdo</span>`
+    } else {
+      this.chapterCheckTarget.innerHTML = `
+        <span class="flex items-center justify-center w-5 h-5 rounded-full bg-error/10 text-error">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </span>
+        <span class="text-error">Adicione conteúdo aos capítulos</span>`
+    }
+
+    this.publishableValue = titleOk && categoryOk && hasContent
+    this.confirmButtonTarget.disabled = !this.publishableValue
+
     this.modalTarget.classList.remove("hidden")
     this.modalTarget.classList.add("flex")
     document.body.style.overflow = "hidden"
@@ -39,6 +72,14 @@ export default class extends Controller {
 
   async confirm() {
     if (!this.publishableValue) return
+
+    const autoSaveCtrl = this.application.getControllerForElementAndIdentifier(
+      this.element,
+      "auto-save"
+    )
+    if (autoSaveCtrl) {
+      await autoSaveCtrl.save()
+    }
 
     this.setLoading(true)
 
