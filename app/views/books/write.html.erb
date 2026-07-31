@@ -38,8 +38,8 @@
           Publicar
         </button>
       <% else %>
-        <%= link_to unpublish_book_path(@book),
-            data: { turbo_method: :patch, turbo_confirm: "Despublicar este livro?" },
+        <%= button_to unpublish_book_path(@book), method: :patch,
+            data: { turbo_confirm: "Despublicar este livro?", confirm_title: "Despublicar livro", confirm_accept: "Despublicar", confirm_variant: "danger" },
             class: "inline-flex items-center gap-1.5 px-3 py-1 bg-success/10 text-success text-sm font-medium rounded-full hover:bg-success/20 transition-colors" do %>
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
           Publicado

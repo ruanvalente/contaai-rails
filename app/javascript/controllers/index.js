@@ -10,6 +10,9 @@ application.register("auto-save", AutoSaveController)
 import ChapterPanelController from "./chapter_panel_controller"
 application.register("chapter-panel", ChapterPanelController)
 
+import ConfirmModalController from "./confirm_modal_controller"
+application.register("confirm-modal", ConfirmModalController)
+
 import CoverUploadController from "./cover_upload_controller"
 application.register("cover-upload", CoverUploadController)
 

@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { getConfirmModalController } from "./confirm_modal_controller"
 
 export default class extends Controller {
   static targets = ["list", "emptyState"]
@@ -166,7 +167,19 @@ export default class extends Controller {
     const li = event.target.closest("li")
     const chapterId = parseInt(li.dataset.chapterId)
 
-    if (!confirm("Tem certeza que deseja excluir este capítulo?")) return
+    const confirmModal = getConfirmModalController()
+    if (!confirmModal) {
+      if (!window.confirm("Tem certeza que deseja excluir este capítulo?")) return
+    } else {
+      const confirmed = await confirmModal.confirm({
+        title: "Excluir capítulo",
+        message: "Tem certeza que deseja excluir este capítulo?",
+        confirmText: "Excluir",
+        cancelText: "Cancelar",
+        variant: "danger"
+      })
+      if (!confirmed) return
+    }
 
     try {
       const response = await fetch(`/books/${this.bookIdValue}/chapters/${chapterId}`, {
