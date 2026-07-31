@@ -1,0 +1,47 @@
+<div id="confirm-modal"
+     data-controller="confirm-modal"
+     tabindex="-1"
+     aria-hidden="true"
+     aria-labelledby="confirm-modal-title"
+     aria-describedby="confirm-modal-message"
+     class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+  <div class="relative p-4 w-full max-w-md max-h-full">
+    <div class="relative bg-white rounded-2xl shadow-2xl border border-border-light">
+      <div class="flex items-center justify-between p-4 md:p-5 border-b border-border-light rounded-t-2xl">
+        <h3 data-confirm-modal-target="title"
+            id="confirm-modal-title"
+            class="text-lg font-semibold text-text-primary font-serif">
+          Confirmar ação
+        </h3>
+        <button type="button"
+                data-action="click->confirm-modal#cancel"
+                class="p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-sec transition-colors"
+                aria-label="Fechar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="p-4 md:p-5 space-y-4">
+        <p data-confirm-modal-target="message"
+           id="confirm-modal-message"
+           class="text-base leading-relaxed text-text-secondary">
+        </p>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 p-4 md:p-5 border-t border-border-light rounded-b-2xl">
+        <button type="button"
+                data-action="click->confirm-modal#cancel"
+                data-confirm-modal-target="cancelButton"
+                class="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary bg-bg-sec hover:bg-border-light rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40">
+          Cancelar
+        </button>
+        <button type="button"
+                data-action="click->confirm-modal#accept"
+                data-confirm-modal-target="confirmButton"
+                class="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40">
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
