@@ -463,6 +463,21 @@ POST /books/:book_id/chapters
 
 ---
 
+### Etapa 6: Sidebar de Capítulos Colapsável em Mobile ✅
+
+**Status:** Concluída em 10/08/2026
+
+**Arquivos:** 2 arquivos
+
+| #   | Arquivo                                            | Ação                                    |
+| --- | -------------------------------------------------- | --------------------------------------- |
+| 6.1 | `app/javascript/controllers/editor_sidebar_controller.js` | Stimulus controller para drawer mobile |
+| 6.2 | Atualizar `write.html.erb`                         | Botão toggle, overlay e aside em drawer |
+
+**Dependências:** Etapa 2
+
+---
+
 ### Ordem de Execução Recomendada
 
 ```
@@ -500,7 +515,7 @@ Etapa 1 ──→ Etapa 2 ──→ Etapa 3
 - [ ] Interface é responsiva (funciona em tablets)
 - [ ] Atalhos de teclado funcionam (Ctrl+B, Ctrl+I, etc.)
 - [ ] Experiência de escrita é confortável (fonte serif, largura adequada)
-- [ ] Sidebar de capítulos pode ser expandida/recolhida em mobile
+- [x] Sidebar de capítulos pode ser expandida/recolhida em mobile — Etapa 6
 
 ### Acessibilidade
 
@@ -632,7 +647,7 @@ Etapa 1 ──→ Etapa 2 ──→ Etapa 3
 - [ ] Testar em ambiente com PostgreSQL
 - [ ] Implementar salvamento automático (Etapa 3)
 - [ ] Implementar contadores em tempo real (Etapa 3)
-- [ ] Adicionar suporte a mobile (sidebar colapsável)
+- [x] Adicionar suporte a mobile (sidebar colapsável) — Etapa 6
 
 ---
 
@@ -694,7 +709,7 @@ _Versão: 1.3_
 **Pendente:**
 
 - [ ] Testar em ambiente com PostgreSQL
-- [ ] Adicionar suporte a mobile (sidebar colapsável)
+- [x] Adicionar suporte a mobile (sidebar colapsável) — Etapa 6
 
 **Correções pós-review (28/07/2026):**
 
@@ -760,7 +775,7 @@ _Versão: 1.3_
 **Pendente:**
 
 - [ ] Testar em ambiente com PostgreSQL
-- [ ] Adicionar suporte a mobile (sidebar colapsável)
+- [x] Adicionar suporte a mobile (sidebar colapsável) — Etapa 6
 - [ ] Crop de imagem (proporção 2:3 fixa) — pode ser feito em etapa futura
 
 ---
@@ -839,8 +854,67 @@ _Versão: 1.3_
 **Pendente:**
 
 - [ ] Testar em ambiente com PostgreSQL
-- [ ] Adicionar suporte a mobile (sidebar colapsável)
+- [x] Adicionar suporte a mobile (sidebar colapsável) — Etapa 6
 
 ---
 
-_Versão: 1.4 — 28/07/2026_
+### Etapa 6: Sidebar de Capítulos Colapsável em Mobile ✅
+
+**Status:** Concluída em 10/08/2026
+
+**Arquivos criados:**
+
+| Arquivo                                                    | Descrição                                                                                             |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `app/javascript/controllers/editor_sidebar_controller.js`  | Stimulus controller para drawer mobile: toggle, overlay, Escape, focus e reset em resize              |
+
+**Arquivos atualizados:**
+
+| Arquivo                               | Mudança                                                                                                                             |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `app/views/books/write.html.erb`      | Botão toggle no header (mobile), aside transformado em drawer com overlay, botão fechar e fechamento ao selecionar capítulo          |
+| `app/javascript/controllers/index.js` | Registrado controller `editor-sidebar`                                                                                              |
+
+**Funcionalidades implementadas:**
+
+1. **Drawer Mobile (F-ED-002 §b)**
+   - Em telas `< 1024px`, a sidebar vira drawer fixo que desliza da esquerda
+   - Botão hamburger no header (visível apenas em mobile) abre o painel
+   - Overlay com backdrop `bg-black/50` fecha ao clicar fora
+   - Botão "X" dentro do drawer fecha o painel
+   - Selecionar um capítulo fecha automaticamente o drawer
+   - Em desktop (`≥ 1024px`), sidebar permanece estática como antes (`lg:static`)
+
+2. **Acessibilidade**
+   - `aria-expanded` e `aria-controls` no botão toggle
+   - `aria-label` no aside e nos botões de abrir/fechar
+   - Foco move para o botão "Novo capítulo" ao abrir
+   - `Escape` fecha o drawer e restaura foco ao toggle
+   - `prefers-reduced-motion` respeitado via transições Tailwind (apenas transform)
+
+3. **Robustez**
+   - Listener de `resize` remove estado de drawer ao crescer para desktop
+   - `body.overflow` travado enquanto drawer aberto (evita scroll duplo)
+   - `disconnect()` remove listeners (sem memory leaks em Turbo)
+
+**Decisões tomadas:**
+
+1. **Controller dedicado `editor-sidebar`**: Separado de `chapter-panel` (responsabilidade única — layout vs CRUD), seguindo o padrão de controllers dedicados do projeto
+2. **Breakpoint `lg` (1024px)**: Coincide com `lg:flex` já usado na sidebar estática
+3. **Reutilização de classes Tailwind existentes**: `-translate-x-full`, `transition-transform`, `fixed inset-y-0` — mesmo padrão do drawer da nav principal
+4. **Fechamento automático ao selecionar**: Disparado via evento `chapter:selected` (mesmo evento que o editor já escuta), mantendo acoplamento baixo
+
+**Pendente:**
+
+- [ ] Testar em ambiente com PostgreSQL
+
+**Correções pós-review (10/08/2026):**
+
+1. **Bug: drawer preso aberto após resize desktop → mobile** — `handleResize` só tratava o branch desktop. Agora, ao voltar para mobile com o drawer aberto, `setClosedState()` é chamado para restaurar `-translate-x-full`.
+2. **Regressão a11y: drawer fechado ainda focável/screen-reader visível** — `visibility:hidden` (`invisible` + `aria-hidden="true"`) aplicado quando fechado no mobile, removido ao abrir e em desktop (`lg:visible`). Foco restaurado ao toggle ao fechar via overlay, botão X ou Escape.
+3. **`body.overflow` não resetado em `disconnect()`** — `setClosedState()` agora é chamado no `disconnect()` para liberar o scroll lock em navegação Turbo.
+4. **Estilo divergente (semicolons)** — `index.js` havia sido reformatado com semicolons; revertido para o estilo sem semicolons do codebase, mantendo apenas a adição do registro.
+
+---
+
+_Versão: 1.5 — 10/08/2026_
