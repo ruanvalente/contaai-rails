@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { Dismiss } from "flowbite"
 
 export default class extends Controller {
   static targets = [
@@ -15,7 +16,40 @@ export default class extends Controller {
     deleteUrl: String
   }
 
-  open() {
+  async open() {
+    const autoSaveCtrl = this.application.getControllerForElementAndIdentifier(
+      this.element,
+      "auto-save"
+    )
+    if (autoSaveCtrl) {
+      await autoSaveCtrl.save()
+    }
+
+    const editorCtrl = this.application.getControllerForElementAndIdentifier(
+      this.element,
+      "editor"
+    )
+    const hasContent = editorCtrl?.editor?.getText()?.trim()?.length > 0
+    const titleOk = this.titleCheckTarget.querySelector(".text-success") !== null
+    const categoryOk = this.categoryCheckTarget.querySelector(".text-success") !== null
+
+    if (hasContent) {
+      this.chapterCheckTarget.innerHTML = `
+        <span class="flex items-center justify-center w-5 h-5 rounded-full bg-success/10 text-success">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </span>
+        <span class="text-text-primary">Pelo menos um capítulo com conteúdo</span>`
+    } else {
+      this.chapterCheckTarget.innerHTML = `
+        <span class="flex items-center justify-center w-5 h-5 rounded-full bg-error/10 text-error">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </span>
+        <span class="text-error">Adicione conteúdo aos capítulos</span>`
+    }
+
+    this.publishableValue = titleOk && categoryOk && hasContent
+    this.confirmButtonTarget.disabled = !this.publishableValue
+
     this.modalTarget.classList.remove("hidden")
     this.modalTarget.classList.add("flex")
     document.body.style.overflow = "hidden"
@@ -39,6 +73,14 @@ export default class extends Controller {
 
   async confirm() {
     if (!this.publishableValue) return
+
+    const autoSaveCtrl = this.application.getControllerForElementAndIdentifier(
+      this.element,
+      "auto-save"
+    )
+    if (autoSaveCtrl) {
+      await autoSaveCtrl.save()
+    }
 
     this.setLoading(true)
 
@@ -131,16 +173,32 @@ export default class extends Controller {
     const existing = document.querySelector("[data-flash]")
     if (existing) existing.remove()
 
-    const bgClass = type === "error" ? "bg-error/10 border-error/30 text-error" : "bg-success/10 border-success/30 text-success"
-    const icon = type === "error"
-      ? '<svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>'
-      : '<svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>'
+    const isError = type === "error"
+    const iconClass = isError ? "text-fg-danger bg-danger-soft" : "text-fg-success bg-success-soft"
+    const icon = isError
+      ? '<svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/></svg>'
+      : '<svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11.917 9.724 16.5 19 7.5"/></svg>'
+    const id = `flash-toast-${Date.now()}`
 
     const toast = document.createElement("div")
     toast.setAttribute("data-flash", "")
-    toast.className = `fixed top-4 right-4 z-[60] ${bgClass} border px-4 py-3 rounded-lg shadow-lg max-w-md transition-all duration-300 translate-x-0 opacity-100`
-    toast.innerHTML = `<div class="flex items-center gap-2">${icon}<span>${message}</span></div>`
+    toast.id = id
+    toast.setAttribute("role", isError ? "alert" : "status")
+    if (!isError) toast.setAttribute("aria-live", "polite")
+    toast.className = "fixed top-5 right-5 z-[60] flex items-center w-full max-w-sm p-4 text-body bg-neutral-primary-soft rounded-base shadow-xs border border-default transition-all duration-300"
+    toast.innerHTML = `
+      <div class="inline-flex items-center justify-center shrink-0 w-7 h-7 ${iconClass} rounded">
+        ${icon}
+        <span class="sr-only">${isError ? "Erro" : "Sucesso"}</span>
+      </div>
+      <div class="ms-3 text-sm font-normal"></div>
+      <button type="button" class="ms-auto flex items-center justify-center text-body hover:text-heading bg-transparent box-border border border-transparent hover:bg-neutral-secondary-medium focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded text-sm h-8 w-8 focus:outline-none" data-dismiss-target="#${id}" aria-label="Fechar notificação">
+        <span class="sr-only">Fechar notificação</span>
+        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/></svg>
+      </button>`
+    toast.querySelector(".ms-3").textContent = message
     document.body.appendChild(toast)
+    new Dismiss(toast, toast.querySelector("[data-dismiss-target]"))
 
     setTimeout(() => {
       toast.classList.add("opacity-0", "translate-x-full")

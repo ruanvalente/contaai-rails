@@ -4,38 +4,44 @@
 
 import { application } from "./application"
 
+import AutoSaveController from "./auto_save_controller"
+application.register("auto-save", AutoSaveController)
+
+import ChapterPanelController from "./chapter_panel_controller"
+application.register("chapter-panel", ChapterPanelController)
+
+import ConfirmModalController from "./confirm_modal_controller"
+application.register("confirm-modal", ConfirmModalController)
+
+import CoverUploadController from "./cover_upload_controller"
+application.register("cover-upload", CoverUploadController)
+
+import DropdownController from "./dropdown_controller"
+application.register("dropdown", DropdownController)
+
+import EditorController from "./editor_controller"
+application.register("editor", EditorController)
+
+import EditorSidebarController from "./editor_sidebar_controller"
+application.register("editor-sidebar", EditorSidebarController)
+
+import FlashController from "./flash_controller"
+application.register("flash", FlashController)
+
 import HelloController from "./hello_controller"
 application.register("hello", HelloController)
 
 import PasswordToggleController from "./password_toggle_controller"
 application.register("password-toggle", PasswordToggleController)
 
-import FlashController from "./flash_controller"
-application.register("flash", FlashController)
-
-import SidebarController from "./sidebar_controller"
-application.register("sidebar", SidebarController)
-
-import DropdownController from "./dropdown_controller"
-application.register("dropdown", DropdownController)
+import PublishController from "./publish_controller"
+application.register("publish", PublishController)
 
 import SearchController from "./search_controller"
 application.register("search", SearchController)
 
-import EditorController from "./editor_controller"
-application.register("editor", EditorController)
-
-import ChapterPanelController from "./chapter_panel_controller"
-application.register("chapter-panel", ChapterPanelController)
-
-import AutoSaveController from "./auto_save_controller"
-application.register("auto-save", AutoSaveController)
+import SidebarController from "./sidebar_controller"
+application.register("sidebar", SidebarController)
 
 import WordCountController from "./word_count_controller"
 application.register("word-count", WordCountController)
-
-import CoverUploadController from "./cover_upload_controller"
-application.register("cover-upload", CoverUploadController)
-
-import PublishController from "./publish_controller"
-application.register("publish", PublishController)

@@ -25,7 +25,7 @@
 </head>
 
 
-<body class="font-sans bg-bg-main text-text-primary antialiased">
+<body class="font-sans bg-bg-main text-text-primary antialiased" data-controller="sidebar">
 
   <%= render "shared/flash" %>
 
@@ -44,6 +44,8 @@
     </main>
 
   </div>
+
+  <%= render "shared/confirm_modal" %>
 
 </body>
 </html>

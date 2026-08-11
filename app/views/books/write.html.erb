@@ -1,22 +1,23 @@
 <% content_for(:title, "Editor - #{@book.title}") %>
 
 <div class="h-screen flex flex-col bg-[#F5F0EB]"
-     data-controller="editor chapter-panel auto-save word-count publish"
+     data-controller="editor chapter-panel auto-save word-count publish editor-sidebar"
      data-editor-book-id-value="<%= @book.id %>"
      data-editor-chapter-id-value="<%= @active_chapter&.id %>"
-     data-editor-chapter-title-value="<%= @active_chapter&.title %>"
-     data-editor-content-value="<%= @active_chapter&.content %>"
+      data-editor-chapter-title-value="<%= @active_chapter&.title %>"
+      data-editor-content-value="<%= @active_chapter&.content %>"
      data-chapter-panel-book-id-value="<%= @book.id %>"
      data-chapter-panel-active-chapter-id-value="<%= @active_chapter&.id %>"
      data-auto-save-book-id-value="<%= @book.id %>"
      data-auto-save-chapter-id-value="<%= @active_chapter&.id %>"
      data-auto-save-debounce-ms-value="30000"
      data-publish-book-id-value="<%= @book.id %>"
-     data-publish-book-title-value="<%= @book.title %>"
+      data-publish-book-title-value="<%= @book.title %>"
      data-publish-publishable-value="<%= @book.publishable? %>"
      data-publish-publish-url-value="<%= publish_book_path(@book) %>"
      data-publish-delete-url-value="<%= book_path(@book) %>"
      data-action="chapter:selected->editor#loadChapter
+                 chapter:selected->editor-sidebar#close
                  beforeunload@window->auto-save#saveOnBeforeUnload
                  visibilitychange@document->auto-save#saveOnVisibilityChange">
 
@@ -26,6 +27,15 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
         Voltar
       <% end %>
+      <button type="button"
+              data-editor-sidebar-target="toggle"
+              data-action="click->editor-sidebar#toggle"
+              aria-controls="chapter-sidebar"
+              aria-expanded="false"
+              aria-label="Abrir lista de capítulos"
+              class="lg:hidden inline-flex items-center justify-center w-9 h-9 rounded-lg text-text-secondary hover:text-text-primary hover:bg-[#C2A47E]/10 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>
+      </button>
       <div class="h-5 w-px bg-border-light"></div>
       <h1 class="text-lg font-serif font-semibold text-text-primary truncate max-w-md"><%= @book.title %></h1>
     </div>
@@ -33,13 +43,13 @@
     <div class="flex items-center gap-2">
       <% if @book.draft? %>
         <button data-action="click->publish#open"
-                class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#8B7355] text-white text-sm font-medium rounded-lg hover:bg-[#7A6548] transition-colors">
+                class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#8B7355] text-white text-sm font-medium rounded-lg hover:bg-[#7A6548] transition-colors hover:cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
           Publicar
         </button>
       <% else %>
-        <%= link_to unpublish_book_path(@book),
-            data: { turbo_method: :patch, turbo_confirm: "Despublicar este livro?" },
+        <%= button_to unpublish_book_path(@book), method: :patch,
+            data: { turbo_confirm: "Despublicar este livro?", confirm_title: "Despublicar livro", confirm_accept: "Despublicar", confirm_variant: "danger" },
             class: "inline-flex items-center gap-1.5 px-3 py-1 bg-success/10 text-success text-sm font-medium rounded-full hover:bg-success/20 transition-colors" do %>
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
           Publicado
@@ -49,14 +59,31 @@
   </header>
 
   <div class="flex flex-1 overflow-hidden">
-    <aside class="hidden lg:flex w-64 flex-col bg-[#F5E6D3] border-r border-border-light">
+    <div data-editor-sidebar-target="overlay"
+         data-action="click->editor-sidebar#closeMobile"
+         class="hidden fixed inset-0 z-30 bg-black/50 lg:hidden"></div>
+
+    <aside id="chapter-sidebar"
+           data-editor-sidebar-target="sidebar"
+           aria-label="Lista de capítulos"
+           aria-hidden="true"
+           class="invisible lg:visible fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col bg-[#F5E6D3] border-r border-border-light transition-transform duration-200 ease-in-out lg:static lg:translate-x-0 lg:z-auto">
       <div class="flex items-center justify-between px-4 py-3 border-b border-border-light">
         <h2 class="text-sm font-medium text-text-primary">Capítulos</h2>
-        <button data-action="click->chapter-panel#addChapter"
-                class="flex items-center gap-1 text-xs text-[#8B7355] hover:text-[#7A6548] font-medium transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-          Novo
-        </button>
+        <div class="flex items-center gap-1">
+          <button data-action="click->chapter-panel#addChapter"
+                  data-editor-sidebar-target="addButton"
+                  class="flex items-center gap-1 text-xs text-[#8B7355] hover:text-[#7A6548] font-medium transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            Novo
+          </button>
+          <button type="button"
+                  data-action="click->editor-sidebar#closeMobile"
+                  class="lg:hidden inline-flex items-center justify-center w-8 h-8 rounded-lg text-text-secondary hover:text-text-primary hover:bg-[#C2A47E]/10 transition-colors"
+                  aria-label="Fechar lista de capítulos">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
       </div>
 
       <ul data-chapter-panel-target="list" class="flex-1 overflow-y-auto p-2 space-y-1">
@@ -135,13 +162,16 @@
           <span data-save-status>Salvo automaticamente</span>
           <div class="h-4 w-px bg-border-light"></div>
           <button data-action="click->publish#openDeleteModal"
-                  class="text-error hover:text-red-700 transition-colors font-medium">
+                  class="text-error hover:text-red-700 transition-colors font-medium hover:cursor-pointer">
             Excluir
           </button>
         </div>
       </footer>
     </main>
   </div>
+
+  <%= render "publish_modal" %>
+  <%= render "delete_modal" %>
 </div>
 
 <style>
@@ -154,6 +184,3 @@
     to { opacity: 0; transform: translateY(-10px); }
   }
 </style>
-
-<%= render "publish_modal" %>
-<%= render "delete_modal" %>

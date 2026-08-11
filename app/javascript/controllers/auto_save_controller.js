@@ -14,10 +14,12 @@ export default class extends Controller {
 
     this.boundSaveOnBeforeUnload = this.saveOnBeforeUnload.bind(this)
     this.boundSaveOnVisibilityChange = this.saveOnVisibilityChange.bind(this)
+    this.boundSaveOnTurboVisit = this.saveOnTurboVisit.bind(this)
     this.boundMarkDirty = this.markDirty.bind(this)
 
     window.addEventListener("beforeunload", this.boundSaveOnBeforeUnload)
     document.addEventListener("visibilitychange", this.boundSaveOnVisibilityChange)
+    document.addEventListener("turbo:before-visit", this.boundSaveOnTurboVisit)
     this.element.addEventListener("editor:contentChanged", this.boundMarkDirty)
 
     setTimeout(() => {
@@ -32,6 +34,7 @@ export default class extends Controller {
     this.clearDebounce()
     window.removeEventListener("beforeunload", this.boundSaveOnBeforeUnload)
     document.removeEventListener("visibilitychange", this.boundSaveOnVisibilityChange)
+    document.removeEventListener("turbo:before-visit", this.boundSaveOnTurboVisit)
     this.element.removeEventListener("editor:contentChanged", this.boundMarkDirty)
   }
 
@@ -97,6 +100,12 @@ export default class extends Controller {
     if (this.dirty && this.chapterIdValue) {
       this.saveViaBeacon()
       event.preventDefault()
+    }
+  }
+
+  saveOnTurboVisit(event) {
+    if (this.dirty && this.chapterIdValue) {
+      this.saveViaBeacon()
     }
   }
 
