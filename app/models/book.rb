@@ -1,4 +1,6 @@
 class Book < ApplicationRecord
+  include ContentSanitizer
+
   belongs_to :user
 
   has_one_attached :cover_image

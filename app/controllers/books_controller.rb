@@ -80,12 +80,20 @@ class BooksController < ApplicationController
       return
     end
 
-    full_content = @book.chapters.ordered.map { |c| "## #{c.title}\n\n#{c.content}" }.join("\n\n")
-    @book.update(status: :published, published_at: Time.current, content: full_content)
+    full_content = @book.chapters.ordered.map do |chapter|
+      "<h2>#{CGI.escapeHTML(chapter.title)}</h2>\n\n#{chapter.content}"
+    end.join("\n\n")
 
-    respond_to do |f|
-      f.html { redirect_to @book, notice: "Livro publicado com sucesso." }
-      f.json { render json: { success: true, published_at: @book.published_at } }
+    if @book.update(status: :published, published_at: Time.current, content: full_content)
+      respond_to do |f|
+        f.html { redirect_to @book, notice: "Livro publicado com sucesso." }
+        f.json { render json: { success: true, published_at: @book.published_at } }
+      end
+    else
+      respond_to do |f|
+        f.html { redirect_to @book, alert: "Não foi possível publicar o livro." }
+        f.json { render json: { error: "Não foi possível publicar o livro." }, status: :unprocessable_entity }
+      end
     end
   end
 
@@ -98,8 +106,11 @@ class BooksController < ApplicationController
       redirect_to @book, alert: "Livro não está publicado." and return
     end
 
-    @book.update(status: :draft, published_at: nil)
-    redirect_to @book, notice: "Livro despublicado. Voltando para rascunho."
+    if @book.update(status: :draft, published_at: nil)
+      redirect_to @book, notice: "Livro despublicado. Voltando para rascunho."
+    else
+      redirect_to @book, alert: "Não foi possível despublicar o livro."
+    end
   end
 
   def write

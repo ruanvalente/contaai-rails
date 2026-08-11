@@ -1,6 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 import { Editor } from "@tiptap/core"
 import StarterKit from "@tiptap/starter-kit"
+import Underline from "@tiptap/extension-underline"
 
 export default class extends Controller {
   static targets = ["toolbar", "content", "statusBar"]
@@ -17,7 +18,8 @@ export default class extends Controller {
       extensions: [
         StarterKit.configure({
           heading: { levels: [1, 2, 3] }
-        })
+        }),
+        Underline
       ],
       content: this.contentValue,
       editorProps: {
