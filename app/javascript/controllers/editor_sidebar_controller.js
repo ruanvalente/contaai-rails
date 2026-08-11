@@ -14,9 +14,6 @@ export default class extends Controller {
   disconnect() {
     window.removeEventListener("resize", this.handleResize)
     document.removeEventListener("keydown", this.handleKeydown)
-    if (this.isMobile()) {
-      this.setClosedState()
-    }
   }
 
   toggle() {
