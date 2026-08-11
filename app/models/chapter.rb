@@ -1,4 +1,6 @@
 class Chapter < ApplicationRecord
+  include ContentSanitizer
+
   belongs_to :book, touch: true
 
   validates :title, presence: true

@@ -1,6 +1,7 @@
 class ChaptersController < ApplicationController
   before_action :authenticate_user!
   before_action :set_book
+  before_action :authorize_book_owner!
   before_action :set_chapter, only: [ :show, :update, :destroy, :reorder ]
 
   def index
@@ -13,10 +14,6 @@ class ChaptersController < ApplicationController
   end
 
   def create
-    unless @book.user == current_user
-      render json: { error: "Não autorizado" }, status: :forbidden and return
-    end
-
     @chapter = @book.chapters.build(chapter_params)
 
     if @chapter.save
@@ -27,10 +24,6 @@ class ChaptersController < ApplicationController
   end
 
   def update
-    unless @book.user == current_user
-      render json: { error: "Não autorizado" }, status: :forbidden and return
-    end
-
     if @chapter.update(chapter_params)
       render json: @chapter
     else
@@ -39,19 +32,11 @@ class ChaptersController < ApplicationController
   end
 
   def destroy
-    unless @book.user == current_user
-      render json: { error: "Não autorizado" }, status: :forbidden and return
-    end
-
     @chapter.destroy
     head :no_content
   end
 
   def reorder
-    unless @book.user == current_user
-      render json: { error: "Não autorizado" }, status: :forbidden and return
-    end
-
     new_position = params[:position].to_i
     old_position = @chapter.position
 
@@ -82,6 +67,12 @@ class ChaptersController < ApplicationController
 
   def set_chapter
     @chapter = @book.chapters.find(params[:id])
+  end
+
+  def authorize_book_owner!
+    return if @book.user == current_user
+
+    render json: { error: "Não autorizado" }, status: :forbidden
   end
 
   def chapter_params
