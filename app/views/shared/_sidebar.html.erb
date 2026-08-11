@@ -38,10 +38,17 @@ navigation_items = [
 ]
 %>
 
+<div
+  data-sidebar-target="overlay"
+  data-action="click->sidebar#close"
+  class="hidden fixed inset-0 z-30 bg-black/50 sm:hidden"
+></div>
+
 <button
-  data-drawer-target="sidebar"
-  data-drawer-toggle="sidebar"
+  data-action="click->sidebar#toggle"
+  data-sidebar-target="toggle"
   aria-controls="sidebar"
+  aria-expanded="false"
   type="button"
   class="
     text-sidebar-text
@@ -86,6 +93,9 @@ navigation_items = [
 
 <aside
   id="sidebar"
+  data-sidebar-target="sidebar"
+  aria-label="Sidebar"
+  aria-hidden="true"
   class="
     fixed
     top-0
@@ -97,9 +107,7 @@ navigation_items = [
     -translate-x-full
     sm:translate-x-0
   "
-  aria-label="Sidebar"
 >
-  <div data-sidebar-target="overlay" class="hidden fixed inset-0 bg-black/50 z-30 sm:hidden"></div>
   <div
     class="
       h-full
