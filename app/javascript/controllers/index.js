@@ -22,6 +22,9 @@ application.register("dropdown", DropdownController)
 import EditorController from "./editor_controller"
 application.register("editor", EditorController)
 
+import EditorLinkController from "./editor_link_controller"
+application.register("editor-link", EditorLinkController)
+
 import EditorSidebarController from "./editor_sidebar_controller"
 application.register("editor-sidebar", EditorSidebarController)
 

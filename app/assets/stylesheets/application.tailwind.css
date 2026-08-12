@@ -43,3 +43,29 @@
   --font-serif: "Playfair Display", ui-serif, Georgia, serif;
   --font-reading: "Cormorant Garamond", ui-serif, Georgia, serif;
 }
+
+.editor-toolbar button.is-active {
+  background-color: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  color: var(--color-text-primary);
+}
+
+.editor-toolbar button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--color-text-muted);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.ProseMirror p.is-empty::before {
+  content: attr(data-placeholder);
+  color: var(--color-text-muted);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
