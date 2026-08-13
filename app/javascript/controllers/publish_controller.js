@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import { Dismiss } from "flowbite"
+import { focusableElements, trapFocus } from "../helpers/focus_trap"
 
 export default class extends Controller {
   static targets = [
@@ -14,6 +15,26 @@ export default class extends Controller {
     publishable: Boolean,
     publishUrl: String,
     deleteUrl: String
+  }
+
+  connect() {
+    this.previouslyFocusedElement = null
+    this.boundKeydown = this.handleKeydown.bind(this)
+  }
+
+  disconnect() {
+    document.removeEventListener("keydown", this.boundKeydown, true)
+    if (document.body.style.overflow === "hidden") {
+      document.body.style.overflow = ""
+    }
+  }
+
+  handleKeydown(event) {
+    if (!this.modalTarget.classList.contains("hidden")) {
+      trapFocus(this.modalTarget, event)
+    } else if (!this.deleteModalTarget.classList.contains("hidden")) {
+      trapFocus(this.deleteModalTarget, event)
+    }
   }
 
   async open() {
@@ -50,15 +71,20 @@ export default class extends Controller {
     this.publishableValue = titleOk && categoryOk && hasContent
     this.confirmButtonTarget.disabled = !this.publishableValue
 
+    this.previouslyFocusedElement = document.activeElement
     this.modalTarget.classList.remove("hidden")
     this.modalTarget.classList.add("flex")
     document.body.style.overflow = "hidden"
+    document.addEventListener("keydown", this.boundKeydown, true)
+    this.focusFirstFocusable(this.modalTarget)
   }
 
   close() {
     this.modalTarget.classList.add("hidden")
     this.modalTarget.classList.remove("flex")
     document.body.style.overflow = ""
+    document.removeEventListener("keydown", this.boundKeydown, true)
+    this.restoreFocus()
   }
 
   onModalClick(event) {
@@ -110,9 +136,11 @@ export default class extends Controller {
 
   openDeleteModal() {
     this.close()
+    this.previouslyFocusedElement = document.activeElement
     this.deleteModalTarget.classList.remove("hidden")
     this.deleteModalTarget.classList.add("flex")
     document.body.style.overflow = "hidden"
+    document.addEventListener("keydown", this.boundKeydown, true)
     this.deleteConfirmInputTarget.focus()
   }
 
@@ -120,9 +148,26 @@ export default class extends Controller {
     this.deleteModalTarget.classList.add("hidden")
     this.deleteModalTarget.classList.remove("flex")
     document.body.style.overflow = ""
+    document.removeEventListener("keydown", this.boundKeydown, true)
     this.deleteConfirmInputTarget.value = ""
     this.deleteErrorTarget.classList.add("hidden")
     this.deleteConfirmButtonTarget.disabled = true
+    this.restoreFocus()
+  }
+
+  focusFirstFocusable(container) {
+    const focusables = focusableElements(container)
+    if (focusables.length > 0) {
+      focusables[0].focus()
+    }
+  }
+
+  restoreFocus() {
+    const element = this.previouslyFocusedElement
+    this.previouslyFocusedElement = null
+    if (element && element.isConnected && typeof element.focus === "function") {
+      element.focus()
+    }
   }
 
   onDeleteModalClick(event) {

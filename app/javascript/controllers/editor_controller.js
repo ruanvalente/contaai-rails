@@ -56,6 +56,7 @@ export default class extends Controller {
         attributes: {
           class:
             "prose prose-lg max-w-none focus:outline-none min-h-[60vh] px-8 py-6 font-reading text-[18px] leading-relaxed text-text-primary",
+          "aria-label": "Editor de conteúdo",
         },
       },
       onUpdate: ({ editor }) => {
@@ -72,13 +73,65 @@ export default class extends Controller {
     });
 
     this.element.editorController = this;
+    this.handleToolbarKeydown = this.handleToolbarKeydown.bind(this);
+    if (this.hasToolbarTarget) {
+      this.toolbarTarget.addEventListener("keydown", this.handleToolbarKeydown);
+      this.updateShortcutLabels();
+    }
     this.updateToolbarState();
   }
 
   disconnect() {
+    if (this.hasToolbarTarget) {
+      this.toolbarTarget.removeEventListener(
+        "keydown",
+        this.handleToolbarKeydown,
+      );
+    }
     if (this.editor) {
       this.editor.destroy();
     }
+  }
+
+  handleToolbarKeydown(event) {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    const buttons = Array.from(
+      this.toolbarTarget.querySelectorAll("button:not([disabled])"),
+    );
+    if (buttons.length === 0) return;
+
+    const currentIndex = buttons.indexOf(document.activeElement);
+    let newIndex;
+
+    if (event.key === "Home") {
+      newIndex = 0;
+    } else if (event.key === "End") {
+      newIndex = buttons.length - 1;
+    } else if (event.key === "ArrowRight") {
+      newIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % buttons.length;
+    } else {
+      newIndex =
+        currentIndex === -1
+          ? buttons.length - 1
+          : (currentIndex - 1 + buttons.length) % buttons.length;
+    }
+
+    event.preventDefault();
+    buttons[newIndex].focus();
+  }
+
+  updateShortcutLabels() {
+    if (!this.hasToolbarTarget) return;
+    if (!/Mac|iPhone|iPad|iPod/.test(navigator.platform)) return;
+
+    this.toolbarTarget
+      .querySelectorAll("[aria-keyshortcuts]")
+      .forEach((el) => {
+        const shortcuts = el.getAttribute("aria-keyshortcuts");
+        if (shortcuts) {
+          el.setAttribute("aria-keyshortcuts", shortcuts.replace(/Control/g, "Meta"));
+        }
+      });
   }
 
   dispatchContentChanged(editor) {
