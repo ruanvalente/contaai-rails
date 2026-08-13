@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 class Chapter < ApplicationRecord
   include ContentSanitizer
+  include ChapterWordCountConcern
 
   belongs_to :book, touch: true
 

@@ -2,6 +2,7 @@ import { Controller } from "@hotwired/stimulus";
 import { Editor, Extension } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
+import { calculateWordCount } from "../helpers/word_count";
 
 const EditorShortcuts = Extension.create({
   name: "editorShortcuts",
@@ -82,11 +83,10 @@ export default class extends Controller {
 
   dispatchContentChanged(editor) {
     const text = editor.getText();
-    const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
 
     this.element.dispatchEvent(
       new CustomEvent("editor:contentChanged", {
-        detail: { wordCount, text },
+        detail: { wordCount: calculateWordCount(text), text },
         bubbles: true,
       }),
     );
@@ -256,8 +256,8 @@ export default class extends Controller {
 
     if (autoSaveCtrl) {
       if (autoSaveCtrl.chapterIdValue) {
-        const saved = await autoSaveCtrl.save();
-        if (!saved) return;
+        const status = await autoSaveCtrl.save({ flush: true });
+        if (status !== "saved") return;
       }
       autoSaveCtrl.updateChapterId(chapterId);
     }
@@ -294,8 +294,7 @@ export default class extends Controller {
 
     const content = this.editor.getHTML();
     const text = this.editor.getText();
-    const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
 
-    return { content, wordCount };
+    return { content, wordCount: calculateWordCount(text) };
   }
 }

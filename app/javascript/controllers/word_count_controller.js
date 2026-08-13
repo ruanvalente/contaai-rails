@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { calculateWordCount, calculateCharacterCount } from "../helpers/word_count"
 
 export default class extends Controller {
   static targets = ["wordCount", "charCount"]
@@ -16,38 +17,25 @@ export default class extends Controller {
   }
 
   updateFromEvent(event) {
-    if (event.detail?.wordCount !== undefined) {
-      this.updateDisplay(event.detail.wordCount)
+    const wordCount = event.detail?.wordCount
+    const text = event.detail?.text
+
+    if (wordCount !== undefined) {
+      this.updateDisplay(wordCount, calculateCharacterCount(text))
     } else {
       this.updateFromEditor()
     }
   }
 
   updateFromEditor() {
-    const editorEl = this.element.querySelector("[data-controller*='editor']")
-    const editorController = editorEl?.editorController
+    const editor = this.element.editorController?.editor
+    if (!editor) return
 
-    if (editorController?.editor) {
-      const text = editorController.editor.getText()
-      const wordCount = this.calculateWordCount(text)
-      const charCount = text.length
-      this.updateDisplay(wordCount, charCount)
-    } else {
-      this.updateFromDOM()
-    }
+    const text = editor.getText()
+    this.updateDisplay(calculateWordCount(text), calculateCharacterCount(text))
   }
 
   updateDisplay(wordCount, charCount) {
-    if (charCount === undefined) {
-      const editorEl = this.element.querySelector("[data-controller*='editor']")
-      const editorController = editorEl?.editorController
-      if (editorController?.editor) {
-        charCount = editorController.editor.getText().length
-      } else {
-        charCount = 0
-      }
-    }
-
     if (this.hasWordCountTarget) {
       this.wordCountTarget.textContent = `${wordCount.toLocaleString("pt-BR")} palavras`
     }
@@ -69,28 +57,13 @@ export default class extends Controller {
     }
   }
 
-  calculateWordCount(text) {
-    return text.trim() ? text.trim().split(/\s+/).length : 0
-  }
-
   getActiveChapterElement() {
     const list = document.querySelector("[data-chapter-panel-target='list']")
     if (!list) return null
 
-    const activeId = document.querySelector("[data-controller*='editor']")?.editorController?.chapterIdValue
+    const activeId = this.element.editorController?.chapterIdValue
     if (!activeId) return null
 
     return list.querySelector(`li[data-chapter-id='${activeId}']`)
-  }
-
-  updateFromDOM() {
-    if (this.hasWordCountTarget) {
-      const currentText = this.wordCountTarget.textContent
-      const match = currentText.match(/([\d.]+)/)
-      if (match) {
-        const wordCount = parseInt(match[1].replace(".", ""), 10)
-        this.updateDisplay(wordCount, 0)
-      }
-    }
   }
 }

@@ -5,14 +5,16 @@ export default class extends Controller {
   static values = {
     bookId: Number,
     chapterId: Number,
-    debounceMs: { type: Number, default: 30000 }
+    debounceMs: { type: Number, default: 30000 },
+    maxRetries: { type: Number, default: 3 }
   }
 
   connect() {
     this.timeout = null
     this.dirty = false
+    this.saving = false
+    this.savePromise = null
     this.pendingNavigation = false
-    this.editorController = null
 
     this.boundSaveOnBeforeUnload = this.saveOnBeforeUnload.bind(this)
     this.boundSaveOnVisibilityChange = this.saveOnVisibilityChange.bind(this)
@@ -23,13 +25,6 @@ export default class extends Controller {
     document.addEventListener("visibilitychange", this.boundSaveOnVisibilityChange)
     document.addEventListener("turbo:before-visit", this.boundSaveOnTurboVisit)
     this.element.addEventListener("editor:contentChanged", this.boundMarkDirty)
-
-    setTimeout(() => {
-      this.editorController = this.application.getControllerForElementAndIdentifier(
-        this.element,
-        "editor"
-      )
-    }, 0)
   }
 
   disconnect() {
@@ -40,17 +35,50 @@ export default class extends Controller {
     this.element.removeEventListener("editor:contentChanged", this.boundMarkDirty)
   }
 
-  async save() {
-    if (!this.chapterIdValue) return false
+  get editorController() {
+    return this.application.getControllerForElementAndIdentifier(this.element, "editor")
+  }
 
-    const editorData = this.getEditorData()
-    if (!editorData) return false
+  async save({ flush = false } = {}) {
+    if (!this.chapterIdValue) return "noop"
 
-    this.dirty = false
-    this.clearDebounce()
+    let iterations = 0
 
+    while (true) {
+      iterations += 1
+      let status
+
+      if (this.saving) {
+        this.dirty = true
+        status = await this.savePromise
+      } else {
+        const editorData = this.getEditorData()
+        if (!editorData) return "terminal"
+
+        if (!this.dirty) return "saved"
+
+        this.clearDebounce()
+        this.saving = true
+        this.savePromise = this.performSave(editorData, 0)
+        status = await this.savePromise
+        this.saving = false
+        this.savePromise = null
+      }
+
+      if (status === "saved" && !this.dirty) return "saved"
+      if (status === "terminal") return "terminal"
+
+      if (status === "retry" || !flush || iterations >= 3) {
+        this.scheduleAutoSave()
+        return status === "retry" ? "retry" : "saved"
+      }
+    }
+  }
+
+  async performSave(editorData, attempt) {
+    let response
     try {
-      const response = await fetch(
+      response = await fetch(
         `/books/${this.bookIdValue}/chapters/${this.chapterIdValue}`,
         {
           method: "PATCH",
@@ -60,25 +88,45 @@ export default class extends Controller {
             "Accept": "application/json"
           },
           body: JSON.stringify({
-            chapter: {
-              content: editorData.content,
-              word_count: editorData.wordCount
-            }
+            chapter: { content: editorData.content }
           })
         }
       )
-
-      if (response.ok) {
-        this.showSaveStatus("saved")
-        return true
-      } else {
-        this.showSaveStatus("error")
-        return false
-      }
     } catch (_error) {
+      return this.retrySave(editorData, attempt)
+    }
+
+    if (response.ok) {
+      this.markCleanIfCurrent(editorData)
+      this.showSaveStatus("saved")
+      return "saved"
+    }
+
+    if (response.status >= 500) {
+      return this.retrySave(editorData, attempt)
+    }
+
+    this.showSaveStatus("error")
+    this.dirty = true
+    return "terminal"
+  }
+
+  async retrySave(editorData, attempt) {
+    if (attempt >= this.maxRetriesValue) {
       this.showSaveStatus("error")
       this.dirty = true
-      return false
+      return "retry"
+    }
+
+    this.showSaveStatus("saving")
+    await this.delay(this.backoffDelay(attempt))
+    return this.performSave(editorData, attempt + 1)
+  }
+
+  markCleanIfCurrent(editorData) {
+    const current = this.getEditorData()
+    if (current?.content === editorData.content) {
+      this.dirty = false
     }
   }
 
@@ -109,10 +157,9 @@ export default class extends Controller {
       event.preventDefault()
       this.pendingNavigation = true
       const { url, action } = event.detail
-      this.save().then((saved) => {
+      this.save({ flush: true }).then((status) => {
         this.pendingNavigation = false
-        if (saved) {
-          this.dirty = false
+        if (status === "saved" || status === "terminal") {
           Turbo.visit(url, { action })
         } else {
           this.dirty = true
@@ -130,7 +177,6 @@ export default class extends Controller {
       new URLSearchParams({
         "_method": "patch",
         "chapter[content]": editorData.content,
-        "chapter[word_count]": editorData.wordCount,
         "authenticity_token": this.csrfToken
       })
     )
@@ -158,11 +204,7 @@ export default class extends Controller {
   getEditorData() {
     if (!this.editorController?.editor) return null
 
-    const content = this.editorController.editor.getHTML()
-    const text = this.editorController.editor.getText()
-    const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
-
-    return { content, wordCount }
+    return { content: this.editorController.editor.getHTML() }
   }
 
   showSaveStatus(status) {
@@ -175,6 +217,14 @@ export default class extends Controller {
         this.editorController.showSavingStatus()
       }
     }
+  }
+
+  delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms))
+  }
+
+  backoffDelay(attempt) {
+    return 1000 * 2 ** attempt
   }
 
   get csrfToken() {
