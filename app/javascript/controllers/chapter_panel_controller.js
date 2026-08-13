@@ -62,7 +62,7 @@ export default class extends Controller {
       <span class="text-text-muted text-sm chapter-number">${chapter.position + 1}</span>
       <span class="flex-1 text-sm text-text-primary chapter-title truncate">${this.escapeHtml(chapter.title)}</span>
       <span class="text-xs text-text-muted chapter-word-count">${chapter.word_count || 0} pal.</span>
-      <button class="opacity-0 group-hover:opacity-100 text-text-muted hover:text-error transition-opacity p-1" data-action="click->chapter-panel#deleteChapter" title="Excluir capítulo">
+      <button class="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 text-text-muted hover:text-error transition-opacity p-1" data-action="click->chapter-panel#deleteChapter" title="Excluir capítulo" aria-label="Excluir capítulo">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
       </button>
     `
