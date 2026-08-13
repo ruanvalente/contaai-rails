@@ -98,11 +98,68 @@
 
 ---
 
+## Fase 3 — Estado e Persistência ✅
+
+**Status:** Concluída e validada em 13/08/2026.
+
+### Tarefas executadas
+
+| #   | Tarefa                                                    | Resultado                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Validação                                                                                                                                                                                                                                                                                                |
+| --- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Limpar concern `ChapterWordCountConcern`                  | Reescrito: removida linha duplicada (`text =`/`plain_text =`), `before_save :recalculate_word_and_char_count_from_content, if: :content_changed?`, define `word_count` e `character_count`                                                                                                                                                                                                                                                                                                            | Runner: `<h1>Olá</h1><p>mundo <strong>legal</strong></p>` → `wc=3 cc=15`; `<p>dois palavras</p>` → `wc=2 cc=13`; `<script>` removido (`clean=SIM`)                                                                                                                                                         |
+| 2   | Blocos contíguos contavam errado                          | **Correção pós-teste:** `full_sanitizer` concatena blocos sem separador (`<h1>Olá</h1><p>mundo` → "Olámundo", contando 2 palavras). Adicionado `BLOCK_TAG_PATTERN` que substitui tags de bloco (`p,div,h1-6,ul,ol,li,blockquote,pre,table,tr,td,br,hr`) por espaço antes do sanitize, espelhando o `getText()` do Tiptap (separador de bloco)                                                                                                                                                         | Runner: mesmo conteúdo agora `wc=3 cc=15` (antes `wc=2 cc=14`)                                                                                                                                                                                                                                           |
+| 3   | Remover `:word_count` de `chapter_params`                 | `chapters_controller.rb` agora permite apenas `:title, :content` — backend é a fonte da verdade para contadores                                                                                                                                                                                                                                                                                                                                                                                       | Revisão de código; rubocop OK                                                                                                                                                                                                                                                                            |
+| 4   | Criar helper JS centralizado de contagem                 | Novo `app/javascript/helpers/word_count.js` exportando `calculateWordCount(text)` e `calculateCharacterCount(text)` — elimina a lógica duplicada em `editor_controller`, `auto_save_controller` e `word_count_controller`                                                                                                                                                                                                                                                                              | `npm run build` OK; helper presente no bundle (`rg calculateWordCount/calculateCharacterCount` → 4/3 ocorrências)                                                                                                                                                                                        |
+| 5   | `editor_controller.js` usa helper                         | Importa `calculateWordCount` de `../helpers/word_count`; usado em `dispatchContentChanged` e `getChapterData` (detail `{ wordCount, text }`)                                                                                                                                                                                                                                                                                                                                                           | Build JS OK                                                                                                                                                                                                                                                                                              |
+| 6   | Reescrita do `auto_save_controller.js`                    | `editorController` obtido sincronamente em `connect()` via `application.getControllerForElementAndIdentifier(this.element, "editor")`; estado `saving`+`savePromise`; `save()` com loop de deduplicação (se saving, aguarda promise e reavalia; retorna `true` se `!dirty`; em falha agenda autosave); `performSave` PATCH JSON `{ chapter: { content } }` (sem `word_count`), 5xx/erro → `retrySave` com `backoffDelay = 1000 * 2 ** attempt` (max 3); `markCleanIfCurrent` só limpa dirty se conteúdo atual == salvo; `updateChapterId`; `saveViaBeacon` via `URLSearchParams` (`_method=patch`, `chapter[content]`, `authenticity_token`); `saveOnTurboVisit` aguarda `save()` e só navega com sucesso | Revisão de código + build JS OK                                                                                                                                                                                                                                                                          |
+| 7   | `word_count_controller.js` usa helper e corrige acesso    | Reescrito: usa `calculateWordCount`/`calculateCharacterCount`; editor obtido de `this.element.editorController?.editor` (está no mesmo elemento, não em descendente — o antigo `querySelector("[data-controller*='editor']")` nunca achava e caía no frágil `updateFromDOM`); `updateFromDOM` removido; ouve `editor:contentChanged` e `editor:chapterChanged`; atualiza sidebar (`.chapter-word-count`) via `getActiveChapterElement`                                                                   | Build JS OK                                                                                                                                                                                                                                                                                              |
+| 8   | `aria-live="polite"` no status de salvamento              | `write.html.erb`: `<span data-save-status aria-live="polite">` — leitores de tela anunciam mudanças de status de save                                                                                                                                                                                                                                                                                                                                                                                 | Revisão de HTML                                                                                                                                                                                                                                                                                          |
+| 9   | Verificação de wiring dos controllers                     | `chapter_panel_controller.js` dispatcha `chapter:selected` → `editor_controller#loadChapter` salva capítulo atual (via `autoSaveCtrl.save()` + `updateChapterId`) e dispatcha `editor:chapterChanged` → `word_count_controller` atualiza. `editor_controller` já tinha `showSavingStatus`/`showSavedStatus`/`showErrorStatus` (linhas 216/225/239) usados pelo auto-save                                                                                                                               | Revisão de código                                                                                                                                                                                                                                                                                        |
+
+### Notas técnicas
+
+- **Contagem de caracteres:** `character_count` usa `plain_text.length` após `squeeze(" ")` (conta um único espaço entre palavras, ignora duplicados/whitespace de tags). Não é exibido na UI (frontend usa texto do editor ao vivo); é armazenado para persistência/uso futuro.
+- **Fonte da verdade:** o cliente não envia mais `word_count`/`character_count` — ambos são recalculados no `Chapter` (`before_save`), refletindo em `Book#total_word_count`.
+- **`editorController` no elemento:** como todos os controllers (`editor`, `word-count`, `auto-save`, etc.) ficam no mesmo elemento em `write.html.erb`, o acesso via `this.element.editorController` (setado em `editor_controller#connect`) é correto; o antigo `querySelector` buscava descendentes e nunca encontrava o próprio elemento.
+- **Concern vs Tiptap:** `BLOCK_TAG_PATTERN` aproxima o comportamento do `getText()` do Tiptap (que insere `\n\n` entre blocos) ao inserir espaço entre tags de bloco antes de sanear.
+
+### Ajustes pós-review (autosave)
+
+O `save()` agora retorna um status (`"saved"` | `"terminal"` | `"retry"` | `"noop"`) em vez de boolean, e diferencia flush de background:
+
+- **Deduplicação sem cascata (review #1):** no caminho não-flush (debounce), se o conteúdo mudou durante o save, o loop **não** re-salva imediatamente — agenda `scheduleAutoSave()` e retorna, respeitando o debounce de 30s. O loop só re-salva de imediato no modo `flush` (navegação/troca de capítulo/publicação), com teto de segurança de 3 iterações.
+- **4xx tratado como terminal (review #2):** `performSave` retorna `"terminal"` para 4xx (sem retry/backoff e sem re-agendar autosave). `saveOnTurboVisit` navega em `"saved"` **ou** `"terminal"` (não prende o usuário com erro persistente), mas bloqueia em `"retry"` (5xx/rede esgotados — dados preservados, autosave re-agendado).
+- **`editorController` lazy (review #4):** `auto_save_controller` agora resolve o controller do editor via getter `this.application.getControllerForElementAndIdentifier(...)` a cada acesso, eliminando a dependência da ordem de identificadores no `data-controller`. (O `word_count_controller` já lia dinamicamente.)
+- **Callers atualizados:** `editor_controller#loadChapter` e `publish_controller` usam `save({ flush: true })` e checam `status !== "saved"`.
+
+### Checklist de validação da Fase 3
+
+- [x] Word count é recalculado no backend (runner: `wc=3` para "Olá mundo legal"; atualiza após edição e propaga ao `Book`)
+- [x] Character count é persistido (`cc=15` / `cc=13`)
+- [x] `<script>` não infla word count e é removido do conteúdo
+- [x] `chapter_params` não aceita `:word_count`
+- [x] Helper JS centralizado existe e é usado pelos 3 controllers
+- [x] Autosave deduplica (loop `saving`/`savePromise`) e faz retry com backoff
+- [x] Autosave não envia `word_count` no payload
+- [x] Status de save tem `aria-live="polite"`
+- [x] Troca de capítulo salva o capítulo atual antes de carregar o novo
+- [x] Sem cascata de saves no caminho não-flush (debounce respeitado)
+- [x] 4xx é terminal (sem retry/re-agendamento) e não prende a navegação
+
+### Checks finais
+
+- [x] `bin/rubocop` — 59 arquivos, nenhuma ofensa
+- [x] `npm run build` — OK
+- [x] `npm run build:css` — OK
+- [x] Teste do concern via runner — OK (word_count, character_count, XSS, propagação ao Book)
+- [x] `git status` revisado
+
+---
+
 ## Próximas fases (não iniciadas)
 
 | Fase   | Objetivo                                                                                 | Status   |
 | ------ | ---------------------------------------------------------------------------------------- | -------- |
-| Fase 3 | Estado e Persistência (word_count no backend, deduplicação autosave, retry, `aria-live`) | Pendente |
 | Fase 4 | UX e Acessibilidade (`role="toolbar"`, `aria-pressed`, focus trap, partial da toolbar)   | Pendente |
 | Fase 5 | Testes (Minitest/RSpec, model, request, system, JS)                                      | Pendente |
 | Fase 6 | Polimento (reorder batch, código morto, CSP, documentação)                               | Pendente |

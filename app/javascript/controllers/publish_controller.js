@@ -22,7 +22,7 @@ export default class extends Controller {
       "auto-save"
     )
     if (autoSaveCtrl) {
-      await autoSaveCtrl.save()
+      await autoSaveCtrl.save({ flush: true })
     }
 
     const editorCtrl = this.application.getControllerForElementAndIdentifier(
@@ -79,7 +79,7 @@ export default class extends Controller {
       "auto-save"
     )
     if (autoSaveCtrl) {
-      await autoSaveCtrl.save()
+      await autoSaveCtrl.save({ flush: true })
     }
 
     this.setLoading(true)

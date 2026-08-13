@@ -76,6 +76,6 @@ class ChaptersController < ApplicationController
   end
 
   def chapter_params
-    params.require(:chapter).permit(:title, :content, :word_count)
+    params.require(:chapter).permit(:title, :content)
   end
 end
