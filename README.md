@@ -88,7 +88,7 @@ A funcionalidade mais complexa da aplicação utiliza **TipTap** integrado ao Ra
 2. O editor TipTap (`editor_controller.js`) gerencia formatação (negrito, itálico, títulos, listas, citações), undo/redo e expõe o conteúdo via eventos customizados (`editor:contentChanged`).
 3. O `auto_save_controller.js` salva automaticamente o capítulo via `fetch` (JSON) após 30 segundos de inatividade, ao mudar de capítulo, ao ocultar a aba, ao navegar (Turbo visit) ou ao fechar a página (sendBeacon).
 4. O `chapter_panel_controller.js` gerencia a criação, exclusão, renomeação (double-click) e reordenação (drag-and-drop) de capítulos via API JSON.
-5. Ao publicar, o `books_controller#publish` consolida todos os capítulos em um único conteúdo (`content` da tabela `books`) no formato Markdown-like (`## Título\n\nConteúdo`).
+5. Ao publicar, o `books_controller#publish` consolida todos os capítulos em um único conteúdo (`content` da tabela `books`) gerando HTML válido (`<h2>` com o título de cada capítulo seguido do conteúdo sanitizado).
 
 ### Autenticação
 
@@ -200,6 +200,15 @@ db/
 supabase/                  # Configuração do Supabase local
 ├── config.toml
 └── snippets/
+
+test/                      # Suíte de testes (Minitest + Vitest)
+├── controllers/
+├── fixtures/
+├── javascript/            # Testes JS (Vitest/jsdom)
+├── models/
+├── system/
+├── application_system_test_case.rb
+└── test_helper.rb
 
 .github/workflows/ci.yml   # GitHub Actions
 Dockerfile
@@ -515,7 +524,7 @@ bin/rails db:seed
 | POST   | `/books/:book_id/chapters`             | Criar capítulo (JSON)                       | Owner do livro |
 | PATCH  | `/books/:book_id/chapters/:id`         | Atualizar capítulo (JSON)                   | Owner do livro |
 | DELETE | `/books/:book_id/chapters/:id`         | Excluir capítulo (JSON)                     | Owner do livro |
-| PATCH  | `/books/:book_id/chapters/:id/reorder` | Reordenar capítulo (JSON, param `position`) | Owner do livro |
+| PATCH  | `/books/:book_id/chapters/reorder`   | Reordenar capítulos em batch (JSON, param `ordered_ids`) | Owner do livro |
 
 ### Exemplo de request/response (capítulos)
 
@@ -622,9 +631,38 @@ Não há gem de autorização (como Pundit/CanCanCan). A autorização é feita 
 
 ## Testes
 
-A aplicação **não possui suíte de testes** atualmente. Não existem diretórios `test/` ou `spec/` nem gemas de teste (RSpec, FactoryBot, etc.) no `Gemfile`.
+A aplicação possui suíte de testes em **Minitest** (padrão Rails) e **Vitest** para o JavaScript.
 
-O framework padrão do Rails (Minitest) está disponível, mas `config.generators.system_tests = nil` desabilita a geração de system tests.
+### Testes Rails
+
+```bash
+bin/rails test                 # Model, request e system tests
+bin/rails test test/models     # Testes de models
+bin/rails test test/controllers # Testes de controllers (request)
+bin/rails test test/system     # System tests (editor, Capybara + Selenium/Chrome)
+```
+
+Cobertura:
+
+- **Model** — `Chapter` (validações, posição default, recálculo de contagem, sanitização/XSS) e `Book` (validações, `publishable?`, sanitização).
+- **Request** — `ChaptersController` (auth, ownership, CRUD, reorder em batch, sanitização) e `BooksController` (público/autenticado, ownership, publish/unpublish).
+- **System** — `EditorTest` cobre o editor de escrita: carregamento, formatação (negrito via TipTap), contadores em tempo real, auto-save, adicionar/trocar capítulo e publicação via modal.
+
+O banco de teste usa o PostgreSQL do Supabase local (porta 54322). Como a role `postgres` não é superuser, as fixtures são truncadas com `TRUNCATE ... CASCADE` e ordenadas por dependência de FK (`test_helper.rb`).
+
+### Testes JavaScript
+
+```bash
+npm test      # Vitest (jsdom)
+```
+
+Cobre os helpers `word_count.js`/`focus_trap.js` e o Stimulus controller `word_count_controller.js` em `test/javascript/`.
+
+### Lint
+
+```bash
+bin/rubocop    # Ruby
+```
 
 ## Qualidade de código
 

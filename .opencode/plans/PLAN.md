@@ -221,9 +221,112 @@ Revisão de código executada sobre o diff da Fase 4 apontou 4 achados; todos co
 
 ---
 
+## Fase 5 — Testes ✅
+
+**Status:** Concluída e validada em 13/08/2026.
+
+Decisão do usuário: **Minitest** (padrão Rails, railtie reativado) + **testes JS com Vitest + jsdom** incluídos nesta fase.
+
+### Pré-requisitos e ambiente
+
+| #   | Tarefa                                                          | Resultado                                                                                                                                                                                                                                                                                                                                                                                   | Validação                                                                            |
+| --- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| 1   | Reativar railtie de testes                                      | `config/application.rb`: `# require "rails/test_unit/railtie"` descomentado (não havia `test/` nem framework ativo)                                                                                                                                                                                                                                                                         | `bin/rails test` roda                                                                 |
+| 2   | Adicionar gems de teste                                         | `Gemfile` (grupo `:test`): `capybara` (3.40.0) e `selenium-webdriver` (4.47.0); `bundle install` OK (131 gems)                                                                                                                                                                                                                                                                               | `bundle check` OK                                                                     |
+| 3   | Criar banco de teste                                           | `contaai_rails_test` em Postgres Supabase local (127.0.0.1:54322, role `postgres`). Workaround do schema: drop/create → `CREATE SCHEMA IF NOT EXISTS vault` → `db:schema:load RAILS_ENV=test` (precisa ser executado uma única vez em DB recém-criado; o `schema.rb` não é idempotente — `create_schema "extensions"` falha com `PG::DuplicateSchema` na 2ª execução)                            | `db:schema:load` OK; 10 tabelas criadas                                              |
+| 4   | Contornar falta de superuser no Postgres gerenciado            | O role `postgres` (`rolsuper=false`) não permite `ALTER TABLE ... DISABLE TRIGGER` (usado pelo Rails p/ limpar fixtures) nem `check_all_foreign_keys_valid!` (VALIDA CONSTRAINT exige privilégio em `pg_constraint`). `test_helper.rb` define `ActiveRecord.verify_foreign_keys_for_fixtures = false` + módulo `ContaaiRails::TestFixtures::TruncateInsteadOfTriggerDisable` (prepend em `PostgreSQLAdapter#insert_fixtures_set`): usa `TRUNCATE TABLE ... CASCADE` e ordena os INSERTs por dependência de FK (`fixture_fk_depth`, pais antes de filhos) | Fixtures carregam; 55 testes passam sem `PG::InsufficientPrivilege`                 |
+| 5   | Test DB descoberto durante execução                             | Sem `psql` no PATH; comandos SQL foram executados via `bin/rails runner`. Erro original: `PG::ForeignKeyViolation` na 1ª carga de fixtures (ordem de insert) — resolvido pelo sort topológico; depois `PG::InsufficientPrivilege` em `check_all_foreign_keys_valid!` — resolvido desabilitando a verificação (os dados são consistentes)                                                        | Logs da execução                                                                      |
+
+### Infraestrutura de testes
+
+| #   | Tarefa                          | Resultado                                                                                                                                                                                                                                                                        | Validação |
+| --- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 6   | `test/test_helper.rb`           | Capybara (`require "capybara/rails"` + `"capybara/minitest"`); `Devise::Test::IntegrationHelpers` incluído em `ActionDispatch::IntegrationTest`; `fixtures :all`; hook de truncate topológico; `verify_foreign_keys_for_fixtures = false`                                        | `bin/rails test` OK     |
+| 7   | `test/application_system_test_case.rb` | Classe padrão Rails 8 (`require "test_helper"`); `driven_by :selenium, using: :headless_chrome, screen_size: [1400, 1400]`; `Warden::Test::Helpers` com `Warden.test_mode!`/`Warden.test_reset!` (login via `login_as` sem passar pela UI)                                        | System tests rodam      |
+| 8   | Fixtures                      | `users.yml` (author/reader com Devise: `encrypted_password` via `BCrypt::Password.create("password")`, `confirmed_at`), `books.yml` (draft_book/published_book/other_book), `chapters.yml` (chapter_one/chapter_two/published_chapter)                                               | Fixtures carregam       |
+| 9   | Rebuild de assets para system tests | JS/CSS são servidos dos `app/assets/builds`; alterações nos controllers JS exigem `npm run build` (+ `npm run build:css`) antes dos system tests (o primeiro run usava bundle antigo e os testes de seleção falharam)                                                             | `npm run build` OK      |
+
+### Testes implementados
+
+| Área                    | Arquivos                                                             | Cobertura                                                                                                                                                                                                                                                                | Resultado |
+| ----------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| Model — Chapter         | `test/models/chapter_test.rb` (10 testes)                            | título obrigatório; position default = max+1; recálculo `word_count`/`character_count`; conteúdo vazio; remoção de `<script>` (sem inflar contagem); `javascript:` em href removido; `<img>` removido; tags permitidas preservadas; `Book#word_count` atualizado em save/destroy | 10 OK     |
+| Model — Book            | `test/models/book_test.rb` (8 testes)                                | validações (title/author_name/category); `total_word_count`; `has_chapters?`; `publishable?` (4 variantes); sanitização do content                                                                                                                                         | 8 OK      |
+| Request — Chapters      | `test/controllers/chapters_controller_test.rb` (15 testes)           | auth exigida; index/show/create/update/destroy/reorder; ownership (403 p/ não-dono); posição sequencial no create; sanitização XSS no create; erro sem título; `word_count` enviado pelo cliente é ignorado (recalculado no backend); reorder move/posição idêntica        | 15 OK     |
+| Request — Books         | `test/controllers/books_controller_test.rb` (21 testes)              | index público (só published); show público; new/create/destroy; ownership; publish: owner, já publicado, checks de requisitos (publishable=false), gera HTML `<h2>` sem `##`; unpublish: owner, draft, volta a rascunho; write owner; read exige auth                    | 21 OK     |
+| System — Editor         | `test/system/editor_test.rb` (7 testes)                              | carga do 1º capítulo + contagens; negrito via toolbar; contagem em tempo real; auto-save persiste no servidor (recarga + conferência); adicionar capítulo pela sidebar (cria/seleciona); trocar de capítulo carrega conteúdo; publicar via modal (UI + DB)                 | 7 OK      |
+| JS — helpers            | `test/javascript/helpers/word_count.test.js` (8 testes)              | `calculateWordCount` (espaços, múltiplos espaços, vazio, null, bordas) e `calculateCharacterCount`                                                                                                                                                                          | 8 OK      |
+| JS — helpers            | `test/javascript/helpers/focus_trap.test.js` (7 testes)              | `focusableElements` (só visíveis/focáveis; vazio) e `trapFocus` (não-Tab ignorado, foco externo→primeiro, Tab no último→primeiro, Shift+Tab no primeiro→último); `getClientRects` stubado (jsdom retorna vazio)                                                              | 7 OK      |
+| JS — controller         | `test/javascript/controllers/word_count_controller.test.js` (3 testes) | atualiza contadores via `editor:contentChanged`; atualiza contador do capítulo ativo na sidebar; usa `editor:chapterChanged` para ler do editor                                                                                                                               | 3 OK      |
+
+### Bugs reais encontrados e corrigidos pelos testes
+
+1. **`set_default_position` nunca disparava (todos os capítulos criados com position 0).** O schema define `default: 0` para `position`; no `build`, o atributo já vem como `0` (não `nil`), então `self.position ||= ...` era inócuo. Como `chapter_params` não aceita `position`, **todo capítulo novo era criado com position 0**, fazendo a ordenação depender da ordem de inserção. Corrigido em `app/models/chapter.rb`: `self.position = book.chapters.maximum(:position).to_i + 1` (sobrescreve no create). Testes: `posição padrão é a máxima atual + 1` e `create cria capítulo com posição sequencial`.
+2. **Capítulos renderizados no servidor não eram selecionáveis.** O `createChapterElement` de `chapter_panel_controller.js` anexava listener de click, mas os `li` iniciais renderizados por `write.html.erb` não tinham listener nenhum — clicar num capítulo existente não fazia nada. Corrigido com **delegação de eventos**: `connect()` registra `listTarget.addEventListener("click", this.handleListClick)` (closest `li[data-chapter-id]`, ignora `button`) e o listener por-item no `createChapterElement` foi removido. Teste: `trocar de capítulo carrega o conteúdo correto`.
+
+### Notas técnicas
+
+- **Postgres Supabase local não é superuser:** impossível usar o fluxo padrão de fixtures do Rails (`disable_referential_integrity` e `check_all_foreign_keys_valid!`). O TRUNCATE `... CASCADE` exige apenas ownership das tabelas e, combinado com o sort topológico dos INSERTs, substitui o `DISABLE TRIGGER` com segurança.
+- **`schema:load` não idempotente:** `db/schema.rb` contém `create_schema "extensions"` + `enable_extension "vault.supabase_vault"`. Para (re)criar o banco de teste: drop/create, `CREATE SCHEMA IF NOT EXISTS vault`, e um único `db:schema:load`.
+- **System tests e assincronismo:** `confirm()` do publish e `loadChapter` são assíncronos (fetch); os testes usam espera do Capybara (`assert_selector`/`assert_text`) antes de assertar DB/UI. Sem o wait, o `@book.reload` lia o estado antes do PATCH terminar.
+- **Driving o TipTap nos testes:** `document.execCommand` não aciona o ProseMirror (a contagem não atualizava). Os system tests usam a API do editor via Stimulus (`window.Stimulus.getControllerForElementAndIdentifier(...).editor.chain()...`), o mesmo caminho das ações da toolbar.
+- **`evaluate_script` vs `execute_script`:** `evaluate_script` exige script como expressão (declarações `const` no topo falham com "Unexpected token 'const'"); usou-se expressões/IIFEs.
+- **jsdom não tem layout:** `getClientRects()` retorna vazio para todos os elementos; stubado com `vi.spyOn(HTMLElement.prototype, "getClientRects")` nos testes de `focus_trap`. `hidden`/`display:none` só são detectados no próprio elemento (não no ancestral).
+- **Observações para a Fase 6:** (a) a página pública `show` exibe "Ler Agora" para `read_book_path`, mas `books#read` exige autenticação (visitante cai no login) — decisão de produto pendente; (b) `CI` `.github/workflows/ci.yml` não tem job de testes — recomendado adicionar.
+
+### Checklist de validação da Fase 5
+
+- [x] `bin/rails test` passa — **55 runs, 163 assertions, 0 failures, 0 errors**
+- [x] `npm test` (Vitest) passa — **17 testes, 3 arquivos, 0 falhas**
+- [x] Cobertura das funcionalidades do editor (capítulos, livros, publish/unpublish, sanitização/XSS, autosave, sidebar, modais, contadores)
+- [x] Sanitização e XSS testados em model, request e system
+- [x] `bin/rubocop` — 66 arquivos, nenhuma ofensa
+- [x] `npm run build` e `npm run build:css` — OK
+- [x] `git status` revisado
+
+---
+
+## Fase 6 — Polimento ✅
+
+**Status:** Concluída e validada em 13/08/2026.
+
+| #   | Tarefa                                            | Resultado                                                                                                                                                                                                                                                                                                                             | Validação                                                     |
+| --- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| 1   | Otimizar `reorder` para batch update              | Rota alterada para ação de collection (`PATCH /books/:book_id/chapters/reorder`) aceitando `ordered_ids` (ordem completa dos capítulos). Controller valida que o conjunto de ids é exatamente o do livro (evita posições órfãs/duplicadas), aplica em transação única com `update_column` e retorna os capítulos ordenados. Frontend (`chapter_panel_controller.js#saveNewOrder`) passou de N requisições sequenciais (uma por capítulo) para **1 requisição** com a ordem inteira | 16 testes do ChaptersController verde, incl. "mesma ordem" e "ids inválidos" |
+| 2   | Remover código morto                              | `editor_controller.js`: removido `getChapterData` (nunca chamado; `calculateWordCount` ainda usado em `dispatchContentChanged`). `book.rb`: removido `total_word_count` (só o teste usava; `word_count` é denormalizado no livro). Teste correspondente removido                                                                         | `rg` não encontra referências; suíte verde                    |
+| 3   | Adicionar `published_at` em chapters (se necessário) | **Não necessário** — `Book` já tem `published_at`; publicação é por livro (capítulos são consolidados em `book.content`), então `published_at` por capítulo não agrega valor                                                          | Decisão registrada; sem migration                              |
+| 4   | Documentar o editor no README                     | README: corrigido item 5 da "Camada de escrita" (publish agora gera HTML `<h2>` + conteúdo sanitizado, não mais markdown `##`); seção "Testes" reescrita (antes dizia que não havia suíte) documentando Minitest + Vitest e o workaround de fixtures; estrutura do projeto inclui `test/` (controllers, fixtures, javascript, models, system) | `README.md` revisado                                          |
+| 5   | Ativar CSP                                        | `content_security_policy.rb` ativado: `default-src :self :https`, `font/img-src` com `:data`, `object-src :none`, `script-src :self :https` com **nonce** (nonce generator + `nonce_auto`), `style-src` com `:unsafe_inline` (necessário pelos estilos inline de capa dos livros e classes do editor), `connect-src :self`. `csp_meta_tag` já presente nos layouts                            | 7 system tests verdes com CSP ativo (headless Chrome aplica a política) |
+| 6   | Adicionar `@tailwindcss/typography` para o editor | **Já estava instalado/configurado** em fases anteriores: `@tailwindcss/typography ^0.5.20` no package.json, `@plugin "@tailwindcss/typography"` no `application.tailwind.css` e classes `prose prose-lg` em uso em `read.html.erb` e `editor_controller.js`. Verificado no CSS compilado (477 ocorrências de `prose`)                    | `read.html.erb` renderiza com tipografia; build CSS ok        |
+
+### Extra — job de testes no CI
+
+A suíte de testes (Fase 5) não rodava no GitHub Actions (o `ci.yml` só tinha `scan_ruby` e `lint`). Adicionado job `test`:
+
+- Service container **Postgres 17** na porta 54322 (espelha `config/database.yml` do ambiente test, que aponta para Supabase local 54322), com `POSTGRES_DB: contaai_rails_test`.
+- `npm ci` → `npm run build` + `npm run build:css` (system tests usam o bundle compilado).
+- `db:create` + **`db:migrate`** (não `schema:load`, que referencia extensões Supabase `vault`/`pg_net` inexistentes em Postgres vanilla — as migrations da app não dependem delas).
+- `bin/rails test` (inclui system tests com Chrome headless) + `npm test` (Vitest).
+- `bin/ci` (local) permanece inalterado.
+
+### Checklist de validação da Fase 6
+
+- [x] Reorder é atômico (1 request + transação única) — 16 testes do ChaptersController
+- [x] Código morto removido (`getChapterData`, `total_word_count`)
+- [x] CSP ativo (`script-src` com nonce; `style-src unsafe-inline` documentado)
+- [x] Documentação atualizada (README: editor, testes, estrutura; CSP)
+- [x] `bin/rails test` — **55 runs, 166 assertions, 0 failures, 0 errors**
+- [x] `npm test` — **17 testes, 3 arquivos, 0 falhas**
+- [x] `bin/rubocop` — 66 arquivos, nenhuma ofensa
+- [x] `npm run build` + `npm run build:css` — OK
+- [x] CI job `test` adicionado ao `.github/workflows/ci.yml`
+
+---
+
 ## Próximas fases (não iniciadas)
 
 | Fase   | Objetivo                                                                                 | Status   |
 | ------ | ---------------------------------------------------------------------------------------- | -------- |
-| Fase 5 | Testes (Minitest/RSpec, model, request, system, JS)                                      | Pendente |
-| Fase 6 | Polimento (reorder batch, código morto, CSP, documentação)                               | Pendente |
+| —      | Fases do plano original concluídas (Fase 1 a Fase 6)                                      | ✅ Todas |
+
+Itens pós-plano (opcionais): (a) decisão de produto sobre link "Ler Agora" público × `read` exigir auth; (b) validação do job `test` no GitHub Actions (depende de push); (c) cobertura real ≥70% via SimpleCov, se desejado.

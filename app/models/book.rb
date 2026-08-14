@@ -20,10 +20,6 @@ class Book < ApplicationRecord
   validates :author_name, presence: true
   validates :category, presence: true
 
-  def total_word_count
-    chapters.sum(:word_count)
-  end
-
   def has_chapters?
     chapters.any?
   end

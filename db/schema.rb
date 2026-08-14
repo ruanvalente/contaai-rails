@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_12_131713) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_13_135422) do
   create_schema "extensions"
 
   # These are extensions that must be enabled in order to support this database
@@ -87,7 +87,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_12_131713) do
     t.integer "character_count"
     t.text "content"
     t.datetime "created_at", null: false
-    t.integer "position", default: 0, null: false
+    t.integer "position", null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.integer "word_count", default: 0, null: false
