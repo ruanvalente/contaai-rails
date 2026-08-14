@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+require_relative "../config/environment"
+require "active_record/tasks/database_tasks"
+
+# Prepara o banco usando apenas migrations, sem carregar o `db/schema.rb`.
+# O schema.rb referencia schemas/extensões que só existem no Postgres
+# gerenciado do Supabase (extensions.pg_net, vault.supabase_vault, ...).
+ActiveRecord::Tasks::DatabaseTasks.migrate(skip_initialize: true)
+
+# Os adaptadores solid (cache/queue/cable) usam schemas próprios
+# (db/{cache,queue,cable}_schema.rb). Em produção as quatro conexões apontam
+# para o mesmo banco (Supabase), então carregamos esses schemas na conexão
+# primária.
+solid_tables = {
+  "cache" => "solid_cache_entries",
+  "queue" => "solid_queue_jobs",
+  "cable" => "solid_cable_messages"
+}
+
+ActiveRecord::Schema.verbose = false
+solid_tables.each do |adapter, table|
+  path = Rails.root.join("db/#{adapter}_schema.rb")
+  next if ActiveRecord::Base.connection.data_source_exists?(table)
+
+  instance_eval(File.read(path), path.to_s)
+end
