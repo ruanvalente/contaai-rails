@@ -96,7 +96,11 @@ jobs:
           RAILS_ENV: test
         run: |
           bin/rails db:create
-          bin/rails db:migrate
+          # O `db/schema.rb` habilita extensões Supabase (`extensions.pg_net`,
+          # `vault.supabase_vault`, ...) que só existem no Postgres gerenciado.
+          # `db:migrate` carregaria o schema.rb ao inicializar um banco vazio,
+          # então o banco de test é montado só com migrations.
+          bin/rails runner 'ActiveRecord::Tasks::DatabaseTasks.migrate(skip_initialize: true)'
 
       - name: Run Rails tests
         env:
