@@ -50,4 +50,12 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # O `db/schema.rb` referencia extensões Supabase (`extensions.pg_net`,
+  # `vault.supabase_vault`, ...) que só existem no Postgres gerenciado. Por isso
+  # o banco de test é montado via migrations e o auto-load de schema (que faria
+  # Rails recarregar o schema.rb quando a versão muda) é desativado. Para
+  # configurar o banco de test: `RAILS_ENV=test bin/rails runner
+  # 'ActiveRecord::Tasks::DatabaseTasks.migrate(skip_initialize: true)'`.
+  config.active_record.maintain_test_schema = false
 end

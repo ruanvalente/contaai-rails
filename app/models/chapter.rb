@@ -11,14 +11,17 @@ class Chapter < ApplicationRecord
 
   scope :ordered, -> { order(position: :asc) }
 
-  before_create :set_default_position
+  before_validation :set_default_position, on: :create
   after_save :recalculate_book_word_count
   after_destroy :recalculate_book_word_count, :reorder_positions
 
   private
 
   def set_default_position
-    self.position ||= book.chapters.maximum(:position).to_i + 1
+    return unless book && position.nil?
+
+    book.lock!
+    self.position = book.chapters.maximum(:position).to_i + 1
   end
 
   def recalculate_book_word_count

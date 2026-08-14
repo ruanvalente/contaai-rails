@@ -341,13 +341,4 @@ export default class extends Controller {
       console.error("Erro ao carregar capítulo:", error);
     }
   }
-
-  getChapterData() {
-    if (!this.editor) return null;
-
-    const content = this.editor.getHTML();
-    const text = this.editor.getText();
-
-    return { content, wordCount: calculateWordCount(text) };
-  }
 }

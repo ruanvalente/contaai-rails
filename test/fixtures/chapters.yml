@@ -1,0 +1,23 @@
+chapter_one:
+  book: draft_book
+  title: Capítulo Um
+  content: <p>Hello world</p>
+  position: 0
+  word_count: 2
+  character_count: 11
+
+chapter_two:
+  book: draft_book
+  title: Capítulo Dois
+  content: <p>Segundo capítulo</p>
+  position: 1
+  word_count: 2
+  character_count: 16
+
+published_chapter:
+  book: published_book
+  title: Capítulo 1
+  content: <p>Hello world</p>
+  position: 0
+  word_count: 2
+  character_count: 11
