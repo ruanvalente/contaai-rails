@@ -1,4 +1,6 @@
 class Book < ApplicationRecord
+  include ContentSanitizer
+
   belongs_to :user
 
   has_one_attached :cover_image
@@ -17,10 +19,6 @@ class Book < ApplicationRecord
   validates :title, presence: true
   validates :author_name, presence: true
   validates :category, presence: true
-
-  def total_word_count
-    chapters.sum(:word_count)
-  end
 
   def has_chapters?
     chapters.any?

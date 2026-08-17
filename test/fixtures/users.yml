@@ -1,0 +1,13 @@
+author:
+  email: author@example.com
+  encrypted_password: <%= BCrypt::Password.create("password") %>
+  confirmed_at: <%= 1.day.ago %>
+  name: Autor Exemplo
+  role: 1
+
+reader:
+  email: reader@example.com
+  encrypted_password: <%= BCrypt::Password.create("password") %>
+  confirmed_at: <%= 1.day.ago %>
+  name: Leitor Exemplo
+  role: 0

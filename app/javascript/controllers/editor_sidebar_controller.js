@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { trapFocus } from "../helpers/focus_trap"
 
 export default class extends Controller {
   static targets = ["sidebar", "overlay", "toggle", "addButton"]
@@ -7,13 +8,13 @@ export default class extends Controller {
     this.handleResize = this.handleResize.bind(this)
     this.handleKeydown = this.handleKeydown.bind(this)
     window.addEventListener("resize", this.handleResize)
-    document.addEventListener("keydown", this.handleKeydown)
+    document.addEventListener("keydown", this.handleKeydown, true)
     this.handleResize()
   }
 
   disconnect() {
     window.removeEventListener("resize", this.handleResize)
-    document.removeEventListener("keydown", this.handleKeydown)
+    document.removeEventListener("keydown", this.handleKeydown, true)
   }
 
   toggle() {
@@ -57,9 +58,15 @@ export default class extends Controller {
   }
 
   handleKeydown(event) {
-    if (event.key !== "Escape" || !this.isMobile()) return
-    if (this.isOpen()) {
+    if (!this.isMobile()) return
+
+    if (event.key === "Escape" && this.isOpen()) {
       this.closeMobile()
+      return
+    }
+
+    if (event.key === "Tab" && this.isOpen()) {
+      trapFocus(this.sidebarTarget, event)
     }
   }
 

@@ -1,0 +1,76 @@
+<div data-editor-target="toolbar" role="toolbar" aria-label="Ferramentas de formatação"
+     class="editor-toolbar flex items-center gap-1 px-4 py-2 bg-white border-b border-border-light overflow-x-auto">
+  <button type="button" data-action="click->editor#bold" data-editor-tool="bold" aria-pressed="false" aria-keyshortcuts="Control+B"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-primary font-bold text-sm"
+          title="Negrito (Ctrl+B)" aria-label="Negrito">B</button>
+  <button type="button" data-action="click->editor#italic" data-editor-tool="italic" aria-pressed="false" aria-keyshortcuts="Control+I"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-primary italic text-sm"
+          title="Itálico (Ctrl+I)" aria-label="Itálico">I</button>
+  <button type="button" data-action="click->editor#underline" data-editor-tool="underline" aria-pressed="false" aria-keyshortcuts="Control+Shift+U"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-primary underline text-sm"
+          title="Sublinhado (Ctrl+Shift+U)" aria-label="Sublinhado">U</button>
+  <button type="button" data-action="click->editor#strike" data-editor-tool="strike" aria-pressed="false" aria-keyshortcuts="Control+Shift+S"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-primary text-sm"
+          title="Tachado (Ctrl+Shift+S)" aria-label="Tachado"><span class="line-through">S</span></button>
+
+  <div class="h-5 w-px bg-border-light mx-1"></div>
+
+  <button type="button" data-action="click->editor#paragraph" data-editor-tool="paragraph" aria-pressed="false" aria-keyshortcuts="Control+Alt+0"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-primary text-sm"
+          title="Parágrafo (Ctrl+Alt+0)" aria-label="Parágrafo">¶</button>
+  <button type="button" data-action="click->editor#heading1" data-editor-tool="h1" aria-pressed="false" aria-keyshortcuts="Control+Alt+1"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-primary text-sm font-bold"
+          title="Título 1 (Ctrl+Alt+1)" aria-label="Título 1">H1</button>
+  <button type="button" data-action="click->editor#heading2" data-editor-tool="h2" aria-pressed="false" aria-keyshortcuts="Control+Alt+2"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-primary text-sm font-semibold"
+          title="Título 2 (Ctrl+Alt+2)" aria-label="Título 2">H2</button>
+  <button type="button" data-action="click->editor#heading3" data-editor-tool="h3" aria-pressed="false" aria-keyshortcuts="Control+Alt+3"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-primary text-sm font-medium"
+          title="Título 3 (Ctrl+Alt+3)" aria-label="Título 3">H3</button>
+
+  <div class="h-5 w-px bg-border-light mx-1"></div>
+
+  <button type="button" data-action="click->editor#bulletList" data-editor-tool="bulletList" aria-pressed="false" aria-keyshortcuts="Control+Shift+8"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-secondary"
+          title="Lista (Ctrl+Shift+8)" aria-label="Lista">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
+  </button>
+  <button type="button" data-action="click->editor#orderedList" data-editor-tool="orderedList" aria-pressed="false" aria-keyshortcuts="Control+Shift+7"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-secondary"
+          title="Lista Ordenada (Ctrl+Shift+7)" aria-label="Lista ordenada">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="21" y1="6" y2="6"/><line x1="10" x2="21" y1="12" y2="12"/><line x1="10" x2="21" y1="18" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+  </button>
+  <button type="button" data-action="click->editor#blockquote" data-editor-tool="blockquote" aria-pressed="false" aria-keyshortcuts="Control+Shift+B"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-secondary"
+          title="Citação (Ctrl+Shift+B)" aria-label="Citação">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 6H3"/><path d="M21 12H8"/><path d="M21 18H8"/><path d="M3 12v6"/></svg>
+  </button>
+  <button type="button" data-action="click->editor#codeBlock" data-editor-tool="codeBlock" aria-pressed="false" aria-keyshortcuts="Control+Alt+C"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-secondary"
+          title="Bloco de código (Ctrl+Alt+C)" aria-label="Bloco de código">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+  </button>
+  <button type="button" data-action="click->editor-link#open" data-editor-tool="link" data-editor-link-target="linkButton" aria-pressed="false" aria-keyshortcuts="Control+K"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-secondary"
+          title="Inserir link (Ctrl+K)" aria-label="Inserir link">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+  </button>
+  <button type="button" data-action="click->editor#horizontalRule"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-secondary"
+          title="Separador" aria-label="Separador">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" x2="22" y1="12" y2="12"/></svg>
+  </button>
+
+  <div class="h-5 w-px bg-border-light mx-1"></div>
+
+  <button type="button" data-action="click->editor#undo" data-editor-history="undo" aria-keyshortcuts="Control+Z"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-secondary"
+          title="Desfazer (Ctrl+Z)" aria-label="Desfazer">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+  </button>
+  <button type="button" data-action="click->editor#redo" data-editor-history="redo" aria-keyshortcuts="Control+Y"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-secondary"
+          title="Refazer (Ctrl+Y)" aria-label="Refazer">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
+  </button>
+</div>

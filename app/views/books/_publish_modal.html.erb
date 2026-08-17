@@ -1,4 +1,7 @@
 <div data-publish-target="modal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="publish-modal-title"
      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm"
      data-action="click->publish#onBackdropClick keydown.esc->publish#close">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden"
@@ -6,7 +9,7 @@
 
     <div class="px-6 pt-6 pb-4">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold text-text-primary font-serif">Publicar Livro</h2>
+        <h2 id="publish-modal-title" class="text-lg font-semibold text-text-primary font-serif">Publicar Livro</h2>
         <button data-action="click->publish#close"
                 class="p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-sec transition-colors"
                 aria-label="Fechar">

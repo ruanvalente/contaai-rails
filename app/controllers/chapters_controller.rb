@@ -1,7 +1,8 @@
 class ChaptersController < ApplicationController
   before_action :authenticate_user!
   before_action :set_book
-  before_action :set_chapter, only: [ :show, :update, :destroy, :reorder ]
+  before_action :authorize_book_owner!
+  before_action :set_chapter, only: [ :show, :update, :destroy ]
 
   def index
     @chapters = @book.chapters.ordered
@@ -13,10 +14,6 @@ class ChaptersController < ApplicationController
   end
 
   def create
-    unless @book.user == current_user
-      render json: { error: "Não autorizado" }, status: :forbidden and return
-    end
-
     @chapter = @book.chapters.build(chapter_params)
 
     if @chapter.save
@@ -27,10 +24,6 @@ class ChaptersController < ApplicationController
   end
 
   def update
-    unless @book.user == current_user
-      render json: { error: "Não autorizado" }, status: :forbidden and return
-    end
-
     if @chapter.update(chapter_params)
       render json: @chapter
     else
@@ -39,39 +32,28 @@ class ChaptersController < ApplicationController
   end
 
   def destroy
-    unless @book.user == current_user
-      render json: { error: "Não autorizado" }, status: :forbidden and return
-    end
-
     @chapter.destroy
     head :no_content
   end
 
   def reorder
-    unless @book.user == current_user
-      render json: { error: "Não autorizado" }, status: :forbidden and return
-    end
+    raw_ids = Array(params[:ordered_ids])
+    valid_ids = raw_ids.all? { |id| id.is_a?(Integer) || (id.is_a?(String) && id.match?(/\A\d+\z/)) }
+    return render json: { error: "Ordem inválida" }, status: :unprocessable_entity unless valid_ids
 
-    new_position = params[:position].to_i
-    old_position = @chapter.position
-
-    return render json: @book.chapters.ordered if old_position == new_position
+    ordered_ids = raw_ids.map(&:to_i)
+    chapters = @book.chapters
 
     ActiveRecord::Base.transaction do
-      if new_position > old_position
-        @book.chapters.where("position > ? AND position <= ?", old_position, new_position)
-             .where.not(id: @chapter.id)
-             .update_all("position = position - 1")
-      else
-        @book.chapters.where("position >= ? AND position < ?", new_position, old_position)
-             .where.not(id: @chapter.id)
-             .update_all("position = position + 1")
-      end
+      chapters_by_id = chapters.lock.index_by(&:id)
+      return render json: { error: "Ordem inválida" }, status: :unprocessable_entity unless ordered_ids.sort == chapters_by_id.keys.sort
 
-      @chapter.update!(position: new_position)
+      ordered_ids.each_with_index do |id, position|
+        chapters_by_id.fetch(id).update_column(:position, position)
+      end
     end
 
-    render json: @book.chapters.ordered
+    render json: chapters.ordered
   end
 
   private
@@ -84,7 +66,13 @@ class ChaptersController < ApplicationController
     @chapter = @book.chapters.find(params[:id])
   end
 
+  def authorize_book_owner!
+    return if @book.user == current_user
+
+    render json: { error: "Não autorizado" }, status: :forbidden
+  end
+
   def chapter_params
-    params.require(:chapter).permit(:title, :content, :word_count)
+    params.require(:chapter).permit(:title, :content)
   end
 end

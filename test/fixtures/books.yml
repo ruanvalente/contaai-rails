@@ -1,0 +1,25 @@
+draft_book:
+  user: author
+  title: Livro Rascunho
+  author_name: Autor Exemplo
+  category: fiction
+  status: draft
+  word_count: 5
+
+published_book:
+  user: author
+  title: Livro Publicado
+  author_name: Autor Exemplo
+  category: fiction
+  status: published
+  published_at: <%= 1.day.ago %>
+  word_count: 3
+  content: <h2>Capítulo 1</h2><p>Hello world</p>
+
+other_book:
+  user: reader
+  title: Livro do Leitor
+  author_name: Outro Autor
+  category: non_fiction
+  status: draft
+  word_count: 0

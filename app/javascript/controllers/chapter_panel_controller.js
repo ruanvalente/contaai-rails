@@ -10,6 +10,17 @@ export default class extends Controller {
 
   connect() {
     this.draggedElement = null
+    this.listTarget.addEventListener("click", this.handleListClick)
+  }
+
+  disconnect() {
+    this.listTarget?.removeEventListener("click", this.handleListClick)
+  }
+
+  handleListClick = (event) => {
+    if (event.target.closest("button")) return
+    const li = event.target.closest("li[data-chapter-id]")
+    if (li) this.selectChapter(parseInt(li.dataset.chapterId, 10))
   }
 
   async addChapter() {
@@ -62,15 +73,10 @@ export default class extends Controller {
       <span class="text-text-muted text-sm chapter-number">${chapter.position + 1}</span>
       <span class="flex-1 text-sm text-text-primary chapter-title truncate">${this.escapeHtml(chapter.title)}</span>
       <span class="text-xs text-text-muted chapter-word-count">${chapter.word_count || 0} pal.</span>
-      <button class="opacity-0 group-hover:opacity-100 text-text-muted hover:text-error transition-opacity p-1" data-action="click->chapter-panel#deleteChapter" title="Excluir capítulo">
+      <button class="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 text-text-muted hover:text-error transition-opacity p-1" data-action="click->chapter-panel#deleteChapter" title="Excluir capítulo" aria-label="Excluir capítulo">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
       </button>
     `
-
-    li.addEventListener("click", (e) => {
-      if (e.target.closest("button")) return
-      this.selectChapter(chapter.id)
-    })
 
     li.addEventListener("dblclick", (e) => {
       e.preventDefault()
@@ -252,6 +258,7 @@ export default class extends Controller {
 
     const list = this.listTarget
     const items = Array.from(list.querySelectorAll("li"))
+    const previousOrder = Array.from(items)
     const draggedIndex = items.indexOf(this.draggedElement)
     const targetIndex = items.indexOf(targetLi)
 
@@ -262,7 +269,35 @@ export default class extends Controller {
     }
 
     this.reindexChapters()
-    await this.saveNewOrder()
+    const saved = await this.saveNewOrder()
+    if (!saved) await this.refreshOrderFromServer(previousOrder)
+  }
+
+  async refreshOrderFromServer(fallback) {
+    try {
+      const response = await fetch(`/books/${this.bookIdValue}/chapters`, {
+        headers: { "Accept": "application/json" }
+      })
+      if (!response.ok) throw new Error("Não foi possível recarregar a ordem")
+      const chapters = await response.json()
+      this.renderOrder(chapters)
+    } catch (error) {
+      console.error("Erro ao recarregar ordem dos capítulos:", error)
+      this.restoreOrder(fallback)
+    }
+  }
+
+  renderOrder(chapters) {
+    const current = Array.from(this.listTarget.querySelectorAll("li"))
+    const byId = new Map(current.map((li) => [parseInt(li.dataset.chapterId, 10), li]))
+    const ordered = chapters.map((chapter) => byId.get(chapter.id)).filter(Boolean)
+    this.listTarget.replaceChildren(...ordered)
+    this.reindexChapters()
+  }
+
+  restoreOrder(items) {
+    this.listTarget.append(...items)
+    this.reindexChapters()
   }
 
   handleDragEnd(event) {
@@ -273,26 +308,28 @@ export default class extends Controller {
   }
 
   async saveNewOrder() {
-    const items = this.listTarget.querySelectorAll("li[data-chapter-id]")
+    const items = Array.from(this.listTarget.querySelectorAll("li[data-chapter-id]"))
+    const orderedIds = items.map((li) => parseInt(li.dataset.chapterId, 10))
 
-    for (let i = 0; i < items.length; i++) {
-      const li = items[i]
-      const chapterId = parseInt(li.dataset.chapterId)
-      const newPosition = i
+    try {
+      const response = await fetch(`/books/${this.bookIdValue}/chapters/reorder`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": this.csrfToken,
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({ ordered_ids: orderedIds })
+      })
 
-      try {
-        await fetch(`/books/${this.bookIdValue}/chapters/${chapterId}/reorder`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-Token": this.csrfToken,
-            "Accept": "application/json"
-          },
-          body: JSON.stringify({ position: newPosition })
-        })
-      } catch (error) {
-        console.error("Erro ao reordenar capítulo:", error)
+      if (!response.ok) {
+        console.error("Servidor rejeitou a nova ordem dos capítulos")
+        return false
       }
+      return true
+    } catch (error) {
+      console.error("Erro ao reordenar capítulos:", error)
+      return false
     }
   }
 
