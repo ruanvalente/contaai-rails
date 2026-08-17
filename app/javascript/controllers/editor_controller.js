@@ -2,6 +2,7 @@ import { Controller } from "@hotwired/stimulus";
 import { Editor, Extension } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
+import Underline from "@tiptap/extension-underline";
 import { calculateWordCount } from "../helpers/word_count";
 
 const EditorShortcuts = Extension.create({
@@ -44,6 +45,7 @@ export default class extends Controller {
             },
           },
         }),
+        Underline,
         Placeholder.configure({
           placeholder: "Comece a escrever sua história...",
           emptyEditorClass: "is-editor-empty",
