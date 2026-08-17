@@ -162,7 +162,7 @@ describe("auto_save_controller", () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
-  test("saveViaBeacon sends data as URLSearchParams", () => {
+  test("saveViaBeacon sends data as FormData", () => {
     const c = getCtrl();
     const beaconMock = vi.fn();
     vi.stubGlobal("navigator", { sendBeacon: beaconMock });
@@ -171,7 +171,7 @@ describe("auto_save_controller", () => {
 
     expect(beaconMock).toHaveBeenCalledWith(
       "/books/1/chapters/10",
-      expect.any(URLSearchParams),
+      expect.any(FormData),
     );
   });
 

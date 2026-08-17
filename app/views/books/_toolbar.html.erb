@@ -63,6 +63,34 @@
 
   <div class="h-5 w-px bg-border-light mx-1"></div>
 
+  <button type="button" data-action="click->editor#alignLeft" data-editor-tool="alignLeft" aria-pressed="false"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-secondary"
+          title="Alinhar à esquerda" aria-label="Alinhar à esquerda">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="15" x2="3" y1="12" y2="12"/><line x1="17" x2="3" y1="18" y2="18"/></svg>
+  </button>
+  <button type="button" data-action="click->editor#alignCenter" data-editor-tool="alignCenter" aria-pressed="false"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-secondary"
+          title="Centralizar" aria-label="Centralizar">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="17" x2="7" y1="12" y2="12"/><line x1="19" x2="5" y1="18" y2="18"/></svg>
+  </button>
+  <button type="button" data-action="click->editor#alignRight" data-editor-tool="alignRight" aria-pressed="false"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-secondary"
+          title="Alinhar à direita" aria-label="Alinhar à direita">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="21" x2="9" y1="12" y2="12"/><line x1="21" x2="7" y1="18" y2="18"/></svg>
+  </button>
+  <button type="button" data-action="click->editor#indent"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-secondary"
+          title="Aumentar indentação (Tab)" aria-label="Aumentar indentação" aria-keyshortcuts="Tab">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="3" y1="12" y2="12"/><line x1="21" x2="3" y1="6" y2="6"/><line x1="21" x2="3" y1="18" y2="18"/><polyline points="17 15 21 12 17 9"/></svg>
+  </button>
+  <button type="button" data-action="click->editor#outdent"
+          class="p-2 rounded hover:bg-bg-sec transition-colors text-text-secondary"
+          title="Diminuir indentação (Shift+Tab)" aria-label="Diminuir indentação" aria-keyshortcuts="Shift+Tab">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="3" y1="12" y2="12"/><line x1="21" x2="3" y1="6" y2="6"/><line x1="21" x2="3" y1="18" y2="18"/><polyline points="7 15 3 12 7 9"/></svg>
+  </button>
+
+  <div class="h-5 w-px bg-border-light mx-1"></div>
+
   <button type="button" data-action="click->editor#undo" data-editor-history="undo" aria-keyshortcuts="Control+Z"
           class="p-2 rounded hover:bg-bg-sec transition-colors text-text-secondary"
           title="Desfazer (Ctrl+Z)" aria-label="Desfazer">

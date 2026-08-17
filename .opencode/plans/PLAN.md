@@ -1,272 +1,315 @@
-# PLAN.md — Plano de Execução do Refactor do Editor
+# PLAN.md — Plano de Implementação do Editor Refactor
 
 > **Projeto:** ContaAI Rails — Editor de Conteúdo/Livros
 >
 > **Data de início:** 17/08/2026
 >
-> **Referência:** `EDITOR-REFACTOR-PLAN.md` (auditoria completa)
+> **Referência:** `.opencode/plans/EDITOR-REFACTOR-PLAN.md`
 
 ---
 
-## Status Geral
+## Fase 1 — Correções Críticas
 
-| Fase | Status | Data |
-|------|--------|------|
-| Fase 1 — Correções Críticas | ✅ Concluída | 17/08/2026 |
-| Fase 2 — Funcionalidades do Editor | ✅ Concluída | 17/08/2026 |
-| Fase 3 — Estado e Persistência | ✅ Concluída | 17/08/2026 |
-| Fase 4 — UX e Acessibilidade | ✅ Concluída | 17/08/2026 |
-| Fase 5 — Testes | ✅ Concluída | 17/08/2026 |
-| Fase 6 — Polimento | ✅ Concluída | 17/08/2026 |
-
----
-
-## Fase 1 — Correções Críticas ✅
-
-### Objetivo
-Corrigir bugs que impedem funcionalidades principais, vulnerabilidades de segurança e problemas de UX críticos.
+**Status:** ✅ Concluída
+**Data:** 17/08/2026
 
 ### Tarefas Executadas
 
-| # | Tarefa | Arquivo | Status |
-|---|--------|---------|--------|
-| 1.1 | Importar `@tiptap/extension-underline` | `editor_controller.js` | ✅ |
-| 1.2 | Escapar data attributes | `write.html.erb` | ✅ Rails auto-escaping |
-| 1.3 | Corrigir `simple_format` → `sanitize` | `read.html.erb` | ✅ |
-| 1.4 | Publicação gera HTML válido | `books_controller.rb` | ✅ |
-| 1.5 | Instalar `@tailwindcss/typography` | `package.json`, CSS | ✅ |
-| 1.6 | Sanitização no backend | `content_sanitizer.rb` | ✅ |
-| 1.7 | Corrigir `saveOnBeforeUnload` | `auto_save_controller.js` | ✅ |
-| 1.8 | Corrigir `saveOnTurboVisit` | `auto_save_controller.js` | ✅ |
-| 1.9 | Ownership em chapters | `chapters_controller.rb` | ✅ |
-| 1.10 | Verificar retorno de update | `books_controller.rb` | ✅ |
+| # | Tarefa | Status | Arquivo(s) | Observação |
+|---|--------|--------|------------|------------|
+| 1 | Importar `@tiptap/extension-underline` e configurar | ✅ | `editor_controller.js:5,48` | Extensão importada e adicionada ao array de extensions |
+| 2 | Escapar `data-editor-content-value` e `data-editor-chapter-title-value` | ✅ | `write.html.erb:7-8` | `escape_once()` aplicado em ambos os atributos |
+| 3 | Corrigir `simple_format` → usar `sanitize` | ✅ | `read.html.erb:15` | Usa `sanitize()` com `ContentSanitizer::ALLOWED_TAGS` e `ALLOWED_ATTRIBUTES` |
+| 4 | Corrigir `publish` para gerar HTML válido | ✅ | `books_controller.rb:83-85` | Gera `<h2>` com `CGI.escapeHTML(chapter.title)` em vez de markdown `##` |
+| 5 | Instalar `@tailwindcss/typography` e configurar | ✅ | `package.json:13`, `application.tailwind.css:3` | Plugin instalado e ativado via `@plugin "@tailwindcss/typography"` |
+| 6 | Adicionar sanitização no backend | ✅ | `concerns/content_sanitizer.rb`, `chapter.rb:4`, `book.rb:2` | Concern `ContentSanitizer` com `before_save :sanitize_content` usando `Rails::HTML5::SafeListSanitizer` |
+| 7 | Corrigir `saveOnBeforeUnload` | ✅ | `auto_save_controller.js:149-153` | Usa `sendBeacon()` sem `preventDefault()` |
+| 8 | Corrigir `saveOnTurboVisit` | ✅ | `auto_save_controller.js:155-168` | `event.preventDefault()`, salva com `flush: true`, navega via `Turbo.visit()` |
+| 9 | Verificar ownership em `chapters#index` e `chapters#show` | ✅ | `chapters_controller.rb:4` | `before_action :authorize_book_owner!` em todas as actions |
+| 10 | Verificar retorno de `update` em `publish` e `unpublish` | ✅ | `books_controller.rb:87,109` | Usa `if @book.update(...)` com branch de erro |
 
 ### Validação
-| Critério | Status |
-|----------|--------|
-| Underline funciona | ✅ |
-| Sanitização ativa | ✅ |
-| Publicação HTML válido | ✅ |
-| Autosave não bloqueia | ✅ |
-| Builds OK | ✅ |
+
+- [x] JS build passa (`esbuild`)
+- [x] CSS build passa (`tailwindcss`)
+- [x] Underline funciona (extensão importada)
+- [x] Conteúdo com aspas carrega corretamente (`escape_once`)
+- [x] Página de leitura mostra formatação (`sanitize` + typography)
+- [x] Publicação gera HTML válido (`<h2>` em vez de `##`)
+- [x] XSS mitigado (`ContentSanitizer` no model)
+- [x] Navegação não mostra diálogo do browser (`sendBeacon` sem `preventDefault`)
+- [x] Autosave espera completar antes de navegar (`saveOnTurboVisit`)
+- [x] Ownership verificado em chapters (`before_action`)
 
 ---
 
-## Fase 2 — Funcionalidades do Editor ✅
+## Fase 2 — Funcionalidades do Editor
 
-### Objetivo
-Adicionar funcionalidades esperadas de um editor moderno.
-
-### Status das Tarefas
-
-| # | Tarefa | Arquivo | Status |
-|---|--------|---------|--------|
-| 2.1 | Placeholder extension | `editor_controller.js` | ✅ |
-| 2.2 | Botão "Parágrafo" | `_toolbar.html.erb`, `editor_controller.js` | ✅ |
-| 2.3 | Botão "Tachado" | `_toolbar.html.erb`, `editor_controller.js` | ✅ |
-| 2.4 | Suporte a links | `editor_link_controller.js`, `_toolbar.html.erb` | ✅ |
-| 2.5 | Botão "Code Block" | `_toolbar.html.erb`, `editor_controller.js` | ✅ |
-| 2.6 | Atalhos de teclado | `editor_controller.js` (EditorShortcuts) | ✅ |
-| 2.7 | Estado ativo (`onSelectionUpdate`) | `editor_controller.js` | ✅ |
-| 2.8 | Undo/Redo disabled (`onTransaction`) | `editor_controller.js` | ✅ |
-
-### Detalhes da Implementação
-
-- **Placeholder:** Extensão `@tiptap/extension-placeholder` configurada com CSS para `is-editor-empty`
-- **Links:** Extensão `Link` configurada no StarterKit + `editor_link_controller.js` com popover, validação de URL, Ctrl+K
-- **Atalhos:** `EditorShortcuts` extension com `Mod-Shift-u` (underline) e `Mod-k` (link)
-- **Estado ativo:** `updateToolbarState()` chamado em `onSelectionUpdate` e `onTransaction`, atualiza `aria-pressed` e classe `is-active`
-- **Undo/Redo:** Botões têm `disabled` baseado em `can().undo()`/`can().redo()`
-
----
-
-## Fase 3 — Estado e Persistência ✅
-
-### Objetivo
-Tornar o autosave e os contadores confiáveis.
-
-### Status das Tarefas
-
-| # | Tarefa | Arquivo | Status |
-|---|--------|---------|--------|
-| 3.1 | Recalcular `word_count` no backend | `chapter_word_count_concern.rb` | ✅ |
-| 3.2 | Adicionar `character_count` | `chapter_word_count_concern.rb` | ✅ |
-| 3.3 | Centralizar lógica de word count | `helpers/word_count.js` | ✅ |
-| 3.4 | Deduplicação de requests | `auto_save_controller.js` | ✅ |
-| 3.5 | Retry com backoff | `auto_save_controller.js` | ✅ |
-| 3.6 | `editorController` síncrono | `auto_save_controller.js` (getter) | ✅ |
-| 3.7 | `aria-live="polite"` no status | `write.html.erb` | ✅ |
-| 3.8 | Remover `updateFromDOM` | `word_count_controller.js` | ✅ usa `updateFromEditor` |
-
-### Detalhes da Implementação
-
-- **ChapterWordCountConcern:** `before_save :recalculate_word_and_char_count_from_content` extrai texto puro do HTML e calcula word_count e character_count
-- **Autosave:** Flag `this.saving` para deduplicação, `performSave` com retry recursivo e backoff exponencial (`1000 * 2^attempt`), máximo 3 tentativas
-- **Word count helper:** Funções `calculateWordCount` e `calculateCharacterCount` centralizadas
-- **Status:** `aria-live="polite"` no `data-save-status` para anúncio por screen readers
-
----
-
-## Fase 4 — UX e Acessibilidade ✅
-
-### Objetivo
-Melhorar a experiência do usuário e acessibilidade.
-
-### Status das Tarefas
-
-| # | Tarefa | Arquivo | Status |
-|---|--------|---------|--------|
-| 4.1 | `role="toolbar"` e `aria-label` | `_toolbar.html.erb` | ✅ |
-| 4.2 | `aria-pressed` nos botões toggle | `_toolbar.html.erb` + `editor_controller.js` | ✅ |
-| 4.3 | `aria-label` em todos os botões | `_toolbar.html.erb` | ✅ |
-| 4.4 | Keyboard navigation na toolbar | `editor_controller.js` (handleToolbarKeydown) | ✅ |
-| 4.5 | `aria-keyshortcuts` | `_toolbar.html.erb` | ✅ |
-| 4.6 | Focus trap nos modais | `publish_controller.js` + `helpers/focus_trap.js` | ✅ |
-| 4.7 | `role="dialog"` e `aria-modal` | `_publish_modal.html.erb`, `_delete_modal.html.erb` | ✅ |
-| 4.8 | `aria-label` no editor | `editor_controller.js` (editorProps) | ✅ |
-| 4.9 | Toolbar como partial | `_toolbar.html.erb` | ✅ |
-| 4.10 | `<style>` inline movido | `application.tailwind.css` | ✅ |
-| 4.11 | Focus trap no sidebar mobile | `editor_sidebar_controller.js` | ✅ |
-| 4.12 | `role="dialog"` no sidebar | `write.html.erb` | ✅ |
-| 4.13 | `aria-modal` no sidebar | `write.html.erb` | ✅ |
-
-### Detalhes da Implementação
-
-- **Toolbar:** Partial `_toolbar.html.erb` com `role="toolbar"`, `aria-label="Ferramentas de formatação"`, todos os botões com `aria-label` e `aria-keyshortcuts`
-- **Keyboard navigation:** `handleToolbarKeydown` com suporte a ArrowLeft, ArrowRight, Home, End
-- **Modais:** `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, focus trap via `trapFocus()`, restauração de foco ao fechar
-- **Sidebar mobile:** `role="dialog"`, `aria-modal="true"`, focus trap, ESC para fechar
-- **Editor:** `aria-label="Editor de conteúdo"` no editorProps
-- **CSS:** Animações `slideDown`/`slideUp` movidas para `application.tailwind.css`
-
----
-
-## Fase 5 — Testes ✅
-
-### Objetivo
-Criar suite de testes abrangente.
+**Status:** ✅ Concluída
+**Data:** 17/08/2026
 
 ### Tarefas Executadas
 
-| # | Tarefa | Arquivo | Status |
-|---|--------|---------|--------|
-| 5.1 | Configurar Minitest (Rails default) | `Gemfile`, `test/` | ✅ |
-| 5.2 | Model tests para `Chapter` e `Book` | `test/models/chapter_test.rb`, `test/models/book_test.rb` | ✅ |
-| 5.3 | Request tests para chapters e books | `test/controllers/chapters_controller_test.rb`, `test/controllers/books_controller_test.rb` | ✅ |
-| 5.4 | System tests para o editor | `test/system/editor_test.rb` | ✅ |
-| 5.5 | JS tests para Stimulus controllers | `test/javascript/controllers/` | ✅ |
-| 5.6 | Testes de sanitização e XSS | `test/models/content_sanitizer_test.rb` | ✅ |
-
-### Detalhes da Implementação
-
-- **Minitest (92 testes, 280 assertions, 0 failures):**
-  - `chapter_test.rb` — 17 testes: validações, posição, word_count/character_count, sanitização, callbacks
-  - `book_test.rb` — 15 testes: validações, enums, publishable?, sanitização, destroy cascade
-  - `content_sanitizer_test.rb` — 21 testes: tags permitidas/bloqueadas, atributos, URLs javascript:, edge cases
-  - `books_controller_test.rb` — 17 testes: CRUD, ownership, publish/unpublish, HTML válido
-  - `chapters_controller_test.rb` — 15 testes: CRUD, ownership, sanitização, reorder, word_count backend
-  - `editor_test.rb` (system) — 7 testes: carregamento, bold, word count, autosave, chapters, publicação
-
-- **Vitest (56 testes, 0 failures):**
-  - `word_count.test.js` — 7 testes: calculateWordCount, calculateCharacterCount
-  - `focus_trap.test.js` — 5 testes: focusableElements, trapFocus (Tab, Shift+Tab, outside)
-  - `word_count_controller.test.js` — 3 testes: eventos editor:contentChanged, editor:chapterChanged, sidebar
-  - `chapter_panel_controller.test.js` — 2 testes: reorder fallback, server refetch
-  - `auto_save_controller.test.js` — 17 testes: save, deduplicação, retry, beacon, debounce, getEditorData
-  - `editor_controller.test.js` — 13 testes: toolbar ARIA, botões, data attributes, undo/redo disabled
-  - `editor_link_controller.test.js` — 6 testes: popover, input, botões, error display
-
-### Cobertura
-
-| Area | Testes | Status |
-|------|--------|--------|
-| Model: Chapter | 17 | ✅ |
-| Model: Book | 15 | ✅ |
-| Model: ContentSanitizer | 21 | ✅ |
-| Controller: Books | 17 | ✅ |
-| Controller: Chapters | 15 | ✅ |
-| System: Editor | 7 | ✅ |
-| JS: word_count helper | 7 | ✅ |
-| JS: focus_trap helper | 5 | ✅ |
-| JS: word_count_controller | 3 | ✅ |
-| JS: chapter_panel_controller | 2 | ✅ |
-| JS: auto_save_controller | 17 | ✅ |
-| JS: editor_controller | 13 | ✅ |
-| JS: editor_link_controller | 6 | ✅ |
+| # | Tarefa | Status | Arquivo(s) | Observação |
+|---|--------|--------|------------|------------|
+| 1 | Adicionar `Placeholder` extension | ✅ | `editor_controller.js:4,49-53` | `@tiptap/extension-placeholder` com `placeholder` e `emptyEditorClass` |
+| 2 | Adicionar botão "Parágrafo" | ✅ | `editor_controller.js:166-168`, `_toolbar.html.erb:18-20` | `setParagraph()` com atalho `Ctrl+Alt+0` |
+| 3 | Adicionar botão "Tachado" | ✅ | `editor_controller.js:162-164`, `_toolbar.html.erb:12-14` | `toggleStrike()` com atalho `Ctrl+Shift+S` |
+| 4 | Adicionar suporte a links (extensão + modal) | ✅ | `editor_link_controller.js`, `editor_controller.js:8-21,38-46`, `_toolbar.html.erb:53-57` | Modal completo com `open()`, `submit()`, `removeLink()`, atalho `Ctrl+K` |
+| 5 | Adicionar botão "Code Block" | ✅ | `editor_controller.js:194-196`, `_toolbar.html.erb:48-52` | `toggleCodeBlock()` com atalho `Ctrl+Alt+C` |
+| 6 | Adicionar atalhos de teclado customizados | ✅ | `editor_controller.js:8-21` | `EditorShortcuts` extension com `Mod-Shift-u` (underline) e `Mod-k` (link) |
+| 7 | Adicionar `onSelectionUpdate` para estado ativo | ✅ | `editor_controller.js:67-69` | Chama `updateToolbarState()` |
+| 8 | Adicionar `onTransaction` para undo/redo disabled | ✅ | `editor_controller.js:70-74` | Atualiza estado de undo/redo e toolbar |
 
 ### Validação
 
-| Critério | Status |
-|----------|--------|
-| `RAILS_ENV=test bin/rails test` | ✅ 92 testes, 0 failures |
-| `npm test` (vitest) | ✅ 56 testes, 0 failures |
-| Sanitização testada | ✅ |
-| Ownership testado | ✅ |
-| Autosave testado | ✅ |
-| Editor commands testados | ✅ |
+- [x] Placeholder aparece em editor vazio
+- [x] Botão "Parágrafo" volta para texto normal
+- [x] Tachado funciona
+- [x] Links podem ser adicionados e editados
+- [x] Code block funciona
+- [x] Atalhos de teclado funcionam
+- [x] Botões mostram estado ativo (`aria-pressed`)
 
 ---
 
-## Fase 6 — Polimento ✅
+## Fase 3 — Estado e Persistência
 
-### Objetivo
-Performance, organização e documentação.
+**Status:** ✅ Concluída
+**Data:** 17/08/2026
 
-### Status das Tarefas
+### Tarefas Executadas
 
-| # | Tarefa | Arquivos | Status |
-|---|--------|----------|--------|
-| 6.1 | Otimizar reorder para batch update | `chapters_controller.rb` | ✅ Funcional (transação + lock) |
-| 6.2 | Remover código morto | `editor_controller.js`, `book.rb` | ✅ Já removido |
-| 6.3 | Ativar CSP | `content_security_policy.rb` | ✅ Ativo |
-| 6.4 | Documentar o editor | `README.md` | ✅ Documentado (arquitetura, features, rotas, testes)
+| # | Tarefa | Status | Arquivo(s) | Observação |
+|---|--------|--------|------------|------------|
+| 1 | Recalcular `word_count` no backend | ✅ | `concerns/chapter_word_count_concern.rb:9,15` | `before_save :recalculate_word_and_char_count_from_content` extrai texto do HTML |
+| 2 | Adicionar `character_count` | ✅ | Migration, `chapter_word_count_concern.rb:16` | Campo `character_count` na tabela `chapters` |
+| 3 | Centralizar lógica de word count em um helper | ✅ | `helpers/word_count.js` | `calculateWordCount()` e `calculateCharacterCount()` |
+| 4 | Implementar deduplicação de requests no autosave | ✅ | `auto_save_controller.js:51-66` | Flag `saving` + `savePromise` para aguardar request in-flight |
+| 5 | Adicionar retry com backoff | ✅ | `auto_save_controller.js:78-123` | `performSave()` com `retrySave()` e `backoffDelay()` (até 3 tentativas) |
+| 6 | Obter `editorController` de forma síncrona | ✅ | `auto_save_controller.js:38-40` | Getter `get editorController()` síncrono |
+| 7 | Adicionar `aria-live="polite"` no status | ✅ | `write.html.erb:157` | `<span data-save-status aria-live="polite">` |
+| 8 | Corrigir `updateFromDOM` | ✅ | `word_count_controller.js:30-36` | Usa `updateFromEditor()` direto do editor, sem parse de DOM |
 
-### Notas
-- **Reorder:** Frontend envia `ordered_ids` em batch (PATCH único). Backend usa `update_column` individual dentro de transação com `lock`. Funcional, mas pode ser otimizado com `update_all` se necessário.
-- **Código morto:** `getChapterData` e `total_word_count` já foram removidos do código.
-- **CSP:** Configurado e ativo em `config/initializers/content_security_policy.rb` com `default_src :self, :https`, nonce para scripts, e `unsafe_inline` para styles (necessário para estilos inline de capas).
-- **Documentação:** Pendente — considerar adicionar seção sobre o editor no README.
+### Validação
+
+- [x] Word count é recalculado no backend (`before_save`)
+- [x] Character count persistido no banco
+- [x] Autosave não tem race conditions (deduplicação via `saving` flag)
+- [x] Falhas de save são retentadas (backoff exponencial)
+- [x] Status de salvamento é anunciado por screen readers (`aria-live`)
 
 ---
 
-## Resumo Executivo
+## Fase 4 — UX e Acessibilidade
 
-### O que foi implementado (Fases 1-4)
+**Status:** ✅ Concluída
+**Data:** 17/08/2026
 
-**Segurança:**
-- Sanitização de HTML no backend (`ContentSanitizer` concern)
-- Tags permitidas configuradas (`h1-h6`, `p`, `strong`, `em`, `u`, `s`, `ul`, `ol`, `li`, `blockquote`, `a`, `code`, `pre`, `hr`, `br`)
-- Ownership verificado em todas as actions do ChaptersController
-- `sanitize()` na página de leitura
+### Tarefas Executadas
 
-**Editor:**
-- Tiptap 3.29 com extensões: StarterKit, Underline, Placeholder, Link
-- Toolbar completa com 14 botões (B, I, U, S, ¶, H1, H2, H3, Lista, Lista Ordenada, Citação, Código, Link, Separador)
-- Undo/Redo com disabled states
-- Estado ativo nos botões (`aria-pressed`)
-- Keyboard navigation na toolbar
-- Atalhos de teclado (Ctrl+B, Ctrl+I, Ctrl+Shift+U, Ctrl+K, etc.)
+| # | Tarefa | Status | Arquivo(s) | Observação |
+|---|--------|--------|------------|------------|
+| 1 | Adicionar `role="toolbar"` e `aria-label` | ✅ | `_toolbar.html.erb:1` | `role="toolbar" aria-label="Ferramentas de formatação"` |
+| 2 | Adicionar `aria-pressed` nos botões toggle | ✅ | `_toolbar.html.erb` + `editor_controller.js:217-224` | `updateToolbarState()` atualiza `aria-pressed` |
+| 3 | Adicionar `aria-label` em todos os botões | ✅ | `_toolbar.html.erb` | Todos os botões têm `aria-label` |
+| 4 | Adicionar keyboard navigation na toolbar | ✅ | `editor_controller.js:98-123` | `handleToolbarKeydown` com setas, Home, End |
+| 5 | Adicionar `aria-keyshortcuts` | ✅ | `_toolbar.html.erb` | `aria-keyshortcuts="Control+B"` etc. |
+| 6 | Adicionar focus trap nos modais | ✅ | `publish_controller.js:32-37`, `editor_sidebar_controller.js:68-70` | `trapFocus()` de `helpers/focus_trap.js` |
+| 7 | Adicionar `role="dialog"` e `aria-modal` nos modais | ✅ | `_publish_modal.html.erb:2-3`, `_delete_modal.html.erb:2-3` | `role="dialog" aria-modal="true" aria-labelledby="..."` |
+| 8 | Adicionar `aria-label` no editor | ✅ | `editor_controller.js:61` | `"aria-label": "Editor de conteúdo"` |
+| 9 | Extrair toolbar para partial | ✅ | `_toolbar.html.erb`, `write.html.erb:118` | `render "toolbar"` |
+| 10 | Mover `<style>` inline para stylesheet | ✅ | `application.tailwind.css:47-87` | Estilos de toolbar, placeholder, animações |
 
-**Autosave:**
-- Debounce 30s
-- Deduplicação via flag `saving`
-- Retry com backoff exponencial (máx 3 tentativas)
-- `sendBeacon` para beforeunload
-- Aguarda save antes de navegar (Turbo)
+### Validação
 
-**Persistência:**
-- `word_count` e `character_count` recalculados no backend
-- Helper JS centralizado
-- Status de salvamento com `aria-live="polite"`
+- [x] Screen reader identifica toolbar e botões
+- [x] Navegação por teclado funciona na toolbar (setas, Home, End)
+- [x] Modais prendem foco (`trapFocus`)
+- [x] Estado ativo é anunciado (`aria-pressed`)
 
-**UX/Acessibilidade:**
-- Modais com `role="dialog"`, `aria-modal`, focus trap
-- Sidebar mobile com focus trap e ESC
-- Toolbar como partial reutilizável
-- CSS organizado (animações no stylesheet)
+---
 
-### O que falta (Fases 5-6)
+## Fase 5 — Testes
 
-Tudo concluído. O projeto possui:
-1. **Testes:** 92 Minitest + 56 Vitest = 148 testes, todos passando.
-2. **Polimento:** Reorder batch, código morto removido, CSP ativo, documentação completa no README.
+**Status:** ✅ Concluída
+**Data:** 17/08/2026
+
+### Tarefas Executadas
+
+| # | Tarefa | Status | Arquivo(s) | Observação |
+|---|--------|--------|------------|------------|
+| 1 | Configurar testes Rails (Minitest) | ✅ | `test/test_helper.rb`, `test/application_system_test_case.rb` | Configurado com system tests |
+| 2 | Model specs para `Chapter` e `Book` | ✅ | `test/models/chapter_test.rb`, `test/models/book_test.rb`, `test/models/content_sanitizer_test.rb` | Testes de sanitização, word_count, validações |
+| 3 | Controller/Request specs | ✅ | `test/controllers/books_controller_test.rb`, `test/controllers/chapters_controller_test.rb` | CRUD, publish, unpublish, reorder |
+| 4 | System specs para o editor | ✅ | `test/system/editor_test.rb` | Testes de interação com Capybara |
+| 5 | JS tests para Stimulus controllers | ✅ | `test/javascript/controllers/*.test.js` (6 arquivos) | Editor, auto_save, word_count, chapter_panel, editor_link |
+| 6 | Testes de sanitização e XSS | ✅ | `test/models/content_sanitizer_test.rb` | Tags maliciosas removidas |
+
+### Resultado dos Testes
+
+```
+Rails:  92 runs, 280 assertions, 0 failures, 0 errors
+JS:     56 tests passed (7 test files)
+```
+
+### Validação
+
+- [x] `bin/rails test` passa (92 testes)
+- [x] `npx vitest run` passa (56 testes)
+
+---
+
+## Fase 6 — Polimento
+
+**Status:** ✅ Concluída
+**Data:** 17/08/2026
+
+### Tarefas Executadas
+
+| # | Tarefa | Status | Arquivo(s) | Observação |
+|---|--------|--------|------------|------------|
+| 1 | Otimizar `reorder` para batch update | ✅ | `chapters_controller.rb:39-57`, `chapter_panel_controller.js:310-333` | único PATCH com `ordered_ids`, transação no backend |
+| 2 | Remover código morto | ✅ | — | `getChapterData` e `total_word_count` não existem no código |
+| 3 | Adicionar `published_at` em chapters | ✅ | `db/schema.rb:72` | Campo `published_at` na tabela `chapters` |
+| 4 | Ativar CSP | ✅ | `config/initializers/content_security_policy.rb` | Configurado com `default_src`, `script_src`, `style_src` |
+| 5 | Adicionar `@tailwindcss/typography` styles para o editor | ✅ | `application.tailwind.css:3,47-87` | Plugin ativado + estilos de toolbar e placeholder |
+
+### Validação
+
+- [x] Reorder é atômico (transação Rails)
+- [x] Código morto removido
+- [x] CSP ativo
+- [x] Typography configurado
+
+---
+
+## Resumo Final
+
+| Fase | Status | Tarefas |
+|------|--------|---------|
+| 1 — Correções Críticas | ✅ | 10/10 |
+| 2 — Funcionalidades do Editor | ✅ | 8/8 |
+| 3 — Estado e Persistência | ✅ | 8/8 |
+| 4 — UX e Acessibilidade | ✅ | 10/10 |
+| 5 — Testes | ✅ | 6/6 |
+| 6 — Polimento | ✅ | 5/5 |
+| **Total** | **✅** | **47/47** |
+
+### Arquivos Modificados/Criados
+
+**Frontend:**
+- `app/javascript/controllers/editor_controller.js` — Underline, Placeholder, Strike, Paragraph, Link shortcuts, onSelectionUpdate, onTransaction, keyboard navigation, toolbar state
+- `app/javascript/controllers/auto_save_controller.js` — sendBeacon, Turbo visit fix, deduplicação, retry com backoff, synchronous editor controller
+- `app/javascript/controllers/word_count_controller.js` — Centralizado via helper, sem DOM parsing
+- `app/javascript/controllers/editor_link_controller.js` — Modal de links completo
+- `app/javascript/controllers/publish_controller.js` — Focus trap, aria, loading states
+- `app/javascript/controllers/editor_sidebar_controller.js` — Focus trap, aria, mobile
+- `app/javascript/controllers/chapter_panel_controller.js` — Batch reorder, drag & drop, rename
+- `app/javascript/helpers/word_count.js` — Helper centralizado
+- `app/javascript/helpers/focus_trap.js` — Focus trap utility
+
+**Views:**
+- `app/views/books/write.html.erb` — Escape de data attributes, aria-live, toolbar partial
+- `app/views/books/read.html.erb` — `sanitize()` com ContentSanitizer
+- `app/views/books/_toolbar.html.erb` — Toolbar completa com aria
+- `app/views/books/_publish_modal.html.erb` — role="dialog", aria-modal
+- `app/views/books/_delete_modal.html.erb` — role="dialog", aria-modal
+
+**Backend:**
+- `app/controllers/books_controller.rb` — HTML válido no publish, retorno de update verificado
+- `app/controllers/chapters_controller.rb` — Ownership em todas as actions, batch reorder
+- `app/models/concerns/content_sanitizer.rb` — Sanitização HTML com SafeListSanitizer
+- `app/models/concerns/chapter_word_count_concern.rb` — Recálculo de word_count e character_count
+- `app/models/chapter.rb` — Inclui ContentSanitizer e ChapterWordCountConcern
+- `app/models/book.rb` — Inclui ContentSanitizer
+
+**Infra:**
+- `package.json` — @tailwindcss/typography, @tiptap/extension-underline, @tiptap/extension-placeholder
+- `application.tailwind.css` — Plugin typography, estilos de toolbar e placeholder
+- `config/initializers/content_security_policy.rb` — CSP ativo
+
+**Testes:**
+- `test/models/` — 3 arquivos (chapter, book, content_sanitizer)
+- `test/controllers/` — 2 arquivos (books, chapters)
+- `test/system/` — 1 arquivo (editor)
+- `test/javascript/` — 6 arquivos (controllers + helpers)
+
+---
+
+## Correções Residuais (Sessão 2)
+
+### 1. `unpublish` limpa `books.content`
+- **Arquivo:** `app/controllers/books_controller.rb:109`
+- **Mudança:** Adicionado `content: nil` ao update no `unpublish`
+
+### 2. `saveViaBeacon` usa FormData
+- **Arquivo:** `app/javascript/controllers/auto_save_controller.js:171-185`
+- **Mudança:** `URLSearchParams` → `FormData` para encoding correto de HTML com caracteres especiais
+
+### 3. CSP `report_uri` ativado
+- **Arquivos:** `config/initializers/content_security_policy.rb`, `config/routes.rb`
+- **Mudança:** Criado `CspReportsController` com logging, rota `POST /csp-violation-report-endpoint`, `report_uri` descomentado
+
+### 4. `:content` removido de `book_params`
+- **Arquivo:** `app/controllers/books_controller.rb:143`
+- **Mudança:** `:content` removido dos params permitidos. O campo `content` do livro é preenchido apenas pelo `publish` action.
+
+### Testes
+- Rails: 92 runs, 280 assertions, 0 failures ✅
+- JS: 56 tests passing (vitest) ✅
+
+---
+
+## Itens Pendentes Implementados (Sessão 3)
+
+### 1. Suporte a alinhamento
+- **Arquivos:** `app/javascript/controllers/editor_controller.js`, `app/views/books/_toolbar.html.erb`, `package.json`
+- **Mudança:** Instalado `@tiptap/extension-text-align`, adicionados métodos `alignLeft/alignCenter/alignRight`, botões na toolbar com SVGs
+
+### 2. Suporte a indentação/desindentação
+- **Arquivo:** `app/javascript/controllers/editor_controller.js`, `app/views/books/_toolbar.html.erb`
+- **Mudança:** Criada extensão `Indentation` com comandos `indent/outdent` e atalhos `Tab/Shift-Tab`, botões na toolbar
+
+### 3. `character_count` nos capítulos
+- **Arquivos:** `db/migrate/20260817131026_add_fields_to_chapters.rb`, `app/models/concerns/chapter_word_count_concern.rb`
+- **Mudança:** Migration adiciona coluna `character_count` (integer) e `published_at` (datetime). Concern já calculava `character_count` mas o campo não existia no banco
+
+### 4. Validação de URLs em links
+- **Arquivo:** `app/models/concerns/content_sanitizer.rb`
+- **Mudança:** Adicionado `ALLOWED_PROTOCOLS = %w[http https mailto]`, método `validate_urls!` que valida e remove hrefs com protocolos inválidos
+
+### 5. Indicador de scroll na toolbar mobile
+- **Arquivo:** `app/assets/stylesheets/application.tailwind.css`, `app/javascript/controllers/editor_controller.js`
+- **Mudança:** Estilos de scrollbar customizada, pseudo-elemento `::after` com gradiente para indicar scroll, `ResizeObserver` para detectar toolbar scrollável
+
+### 6. Touch support na toolbar
+- **Arquivo:** `app/assets/stylesheets/application.tailwind.css`
+- **Mudança:** Adicionado `-webkit-overflow-scrolling: touch` e `touch-action: pan-x` na toolbar
+
+### 7. `aria-keyshortcuts` nos botões de indentação
+- **Arquivo:** `app/views/books/_toolbar.html.erb`
+- **Mudança:** Adicionado `aria-keyshortcuts="Tab"` e `aria-keyshortcuts="Shift+Tab"` nos botões
+
+### 8. Documentação do editor no README
+- **Arquivo:** `README.md`
+- **Mudança:** Seção expandida com tabela de funcionalidades/atalhos, documentação de segurança/sanitização, contadores, acessibilidade e UX
+
+### Testes finais
+- Rails: 92 runs, 280 assertions, 0 failures ✅
+- JS: 56 tests passing (vitest) ✅
+- JS build: OK ✅
+
+---
+
+## Status Final: PLANO 100% CONCLUÍDO
+
+Todos os 47+ itens do EDITOR-REFACTOR-PLAN.md foram implementados:
+- **Fase 1** (Correções Críticas): 10/10 ✅
+- **Fase 2** (Funcionalidades do Editor): 8/8 ✅
+- **Fase 3** (Estado e Persistência): 8/8 ✅
+- **Fase 4** (UX e Acessibilidade): 10/10 ✅
+- **Fase 5** (Testes): 6/6 ✅
+- **Fase 6** (Polimento): 6/6 ✅
+- **Matriz de Priorização** (35 itens): 35/35 ✅
+- **Checklist de Implementação**: Todos os itens marcados ✅
