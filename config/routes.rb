@@ -38,6 +38,9 @@ Rails.application.routes.draw do
   # Search
   get "search", to: "search#index"
 
+  # CSP violation reports
+  post "csp-violation-report-endpoint", to: "csp_reports#create"
+
   # Health check
   get "up" => "rails/health#show", as: :rails_health_check
 end

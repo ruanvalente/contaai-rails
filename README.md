@@ -85,10 +85,71 @@ sequenceDiagram
 A funcionalidade mais complexa da aplicação utiliza **TipTap** integrado ao Rails:
 
 1. A view `books/write.html.erb` renderiza o editor com múltiplos Stimulus controllers (`editor`, `chapter-panel`, `auto-save`, `word-count`, `publish`, `editor-sidebar`).
-2. O editor TipTap (`editor_controller.js`) gerencia formatação (negrito, itálico, títulos, listas, citações), undo/redo e expõe o conteúdo via eventos customizados (`editor:contentChanged`).
-3. O `auto_save_controller.js` salva automaticamente o capítulo via `fetch` (JSON) após 30 segundos de inatividade, ao mudar de capítulo, ao ocultar a aba, ao navegar (Turbo visit) ou ao fechar a página (sendBeacon).
-4. O `chapter_panel_controller.js` gerencia a criação, exclusão, renomeação (double-click) e reordenação (drag-and-drop) de capítulos via API JSON.
+2. O editor TipTap (`editor_controller.js`) gerencia formatação (negrito, itálico, sublinhado, tachado, títulos, listas, citações, código, links, alinhamento, indentação), undo/redo e expõe o conteúdo via eventos customizados (`editor:contentChanged`).
+3. O `auto_save_controller.js` salva automaticamente o capítulo via `fetch` (JSON) após 30 segundos de inatividade, ao mudar de capítulo, ao ocultar a aba, ao navegar (Turbo visit) ou ao fechar a página (sendBeacon). Suporta deduplicação de requests, retry com backoff e tracking de estado.
+4. O `chapter_panel_controller.js` gerencia a criação, exclusão, renomeação (double-click) e reordenação (drag-and-drop) de capítulos via API JSON com batch update atômico.
 5. Ao publicar, o `books_controller#publish` consolida todos os capítulos em um único conteúdo (`content` da tabela `books`) gerando HTML válido (`<h2>` com o título de cada capítulo seguido do conteúdo sanitizado).
+
+#### Funcionalidades do Editor
+
+| Funcionalidade | Atalho | Descrição |
+| -------------- | ------ | ----------- |
+| Negrito | `Ctrl+B` | Aplica/remove negrito |
+| Itálico | `Ctrl+I` | Aplica/remove itálico |
+| Sublinhado | `Ctrl+Shift+U` | Aplica/remove sublinhado |
+| Tachado | `Ctrl+Shift+S` | Aplica/remove tachado |
+| Parágrafo | `Ctrl+Alt+0` | Define bloco como parágrafo |
+| Título 1 | `Ctrl+Alt+1` | Define bloco como H1 |
+| Título 2 | `Ctrl+Alt+2` | Define bloco como H2 |
+| Título 3 | `Ctrl+Alt+3` | Define bloco como H3 |
+| Lista | `Ctrl+Shift+8` | Lista não ordenada |
+| Lista Ordenada | `Ctrl+Shift+7` | Lista ordenada |
+| Citação | `Ctrl+Shift+B` | Blockquote |
+| Código | `Ctrl+Alt+C` | Bloco de código |
+| Link | `Ctrl+K` | Inserir/editar link |
+| Separador | — | Linha horizontal |
+| Alinhar esquerda | — | Alinha texto à esquerda |
+| Centralizar | — | Centraliza texto |
+| Alinhar direita | — | Alinha texto à direita |
+| Indentar | `Tab` | Aumenta indentação |
+| Desindentar | `Shift+Tab` | Diminui indentação |
+| Desfazer | `Ctrl+Z` | Desfazer última ação |
+| Refazer | `Ctrl+Y` | Refazer última ação |
+
+#### Segurança e Sanitização
+
+- **Sanitização no backend**: O concern `ContentSanitizer` filtra HTML no `before_save` do model, permitindo apenas tags seguras (`h1-h6`, `p`, `strong`, `em`, `u`, `s`, `ul`, `ol`, `li`, `blockquote`, `a`, `code`, `pre`, `hr`, `br`).
+- **Validação de URLs**: Links são validados para permitir apenas protocolos `http`, `https` e `mailto`.
+- **XSS protegido**: Tags perigosas (`<script>`, `<iframe>`, etc.) são removidas automaticamente.
+- **CSP ativo**: Content Security Policy configurado com report de violações em `/csp-violation-report-endpoint`.
+
+#### Contadores
+
+- **Palavras**: Calculado no frontend (tempo real) e recalculado no backend (`ChapterWordCountConcern`).
+- **Caracteres**: Calculado no frontend e persistido no banco (`character_count`).
+- **Confabilidade**: O backend recalcula `word_count` e `character_count` no `before_save` a partir do conteúdo HTML, invalidando valores enviados pelo cliente.
+
+#### Acessibilidade
+
+- `role="toolbar"` e `aria-label` na toolbar.
+- `aria-pressed` em todos os botões toggle.
+- `aria-label` e `aria-keyshortcuts` em todos os botões.
+- Navegação por setas entre botões da toolbar.
+- `aria-live="polite"` na barra de status de salvamento.
+- Focus trap nos modais de publicação e exclusão.
+- `role="dialog"` e `aria-modal="true"` nos modais.
+- `aria-label` no editor contenteditable.
+- Gestão de foco no sidebar mobile (abrir/fechar/restaurar).
+
+#### UX
+
+- **Salvamento automático**: Debounce 30s, deduplicação de requests, retry com backoff.
+- **Salvamento ao sair**: `sendBeacon` no `beforeunload` e na navegação Turbo.
+- **Toolbar responsiva**: Scroll horizontal com indicador visual em mobile.
+- **Touch support**: Toolbar otimizada para dispositivos móveis com `-webkit-overflow-scrolling: touch`.
+- **Estado ativo**: Botões destacam quando o formato está ativo no cursor.
+- **Undo/Redo**: Botões desabilitados quando não há histórico.
+- **Placeholder**: Texto "Comece a escrever sua história..." em editor vazio.
 
 ### Autenticação
 
@@ -441,7 +502,7 @@ erDiagram
 | -------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `users`                    | Usuários autenticados via Devise | `email`, `name`, `role` (reader/author), `bio`, `avatar` (attachment)                                                                                                                                                                                                            |
 | `books`                    | Livros                           | `title`, `author_name`, `description`, `category` (fiction/non_fiction/poetry/essay/short_story/other), `status` (draft/published/archived), `cover_color`, `cover_image` (attachment), `word_count`, `page_count`, `average_rating`, `ratings_count`, `published_at`, `content` |
-| `chapters`                 | Capítulos de um livro            | `title`, `content` (HTML), `position`, `word_count`                                                                                                                                                                                                                              |
+| `chapters`                 | Capítulos de um livro            | `title`, `content` (HTML), `position`, `word_count`, `character_count`, `published_at` |
 | `ratings`                  | Avaliações de livros (1-5)       | `score` (1-5, check constraint), `comment`                                                                                                                                                                                                                                       |
 | `favorites`                | Favoritos de livros              | Unicidade (`user_id`, `book_id`)                                                                                                                                                                                                                                                 |
 | `author_follows`           | Seguir autores                   | `follower_id`, `author_id` (check constraint impede auto-seguir)                                                                                                                                                                                                                 |
