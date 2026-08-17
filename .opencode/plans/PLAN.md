@@ -16,8 +16,8 @@
 | Fase 2 — Funcionalidades do Editor | ✅ Concluída | 17/08/2026 |
 | Fase 3 — Estado e Persistência | ✅ Concluída | 17/08/2026 |
 | Fase 4 — UX e Acessibilidade | ✅ Concluída | 17/08/2026 |
-| Fase 5 — Testes | ⏳ Pendente | — |
-| Fase 6 — Polimento | ✅ Parcial | 17/08/2026 |
+| Fase 5 — Testes | ✅ Concluída | 17/08/2026 |
+| Fase 6 — Polimento | ✅ Concluída | 17/08/2026 |
 
 ---
 
@@ -141,33 +141,73 @@ Melhorar a experiência do usuário e acessibilidade.
 
 ---
 
-## Fase 5 — Testes ⏳
+## Fase 5 — Testes ✅
 
 ### Objetivo
 Criar suite de testes abrangente.
 
-### Status
-Nenhum teste existe no projeto. Esta é a fase pendente mais significativa.
+### Tarefas Executadas
 
-### Tarefas Pendentes
+| # | Tarefa | Arquivo | Status |
+|---|--------|---------|--------|
+| 5.1 | Configurar Minitest (Rails default) | `Gemfile`, `test/` | ✅ |
+| 5.2 | Model tests para `Chapter` e `Book` | `test/models/chapter_test.rb`, `test/models/book_test.rb` | ✅ |
+| 5.3 | Request tests para chapters e books | `test/controllers/chapters_controller_test.rb`, `test/controllers/books_controller_test.rb` | ✅ |
+| 5.4 | System tests para o editor | `test/system/editor_test.rb` | ✅ |
+| 5.5 | JS tests para Stimulus controllers | `test/javascript/controllers/` | ✅ |
+| 5.6 | Testes de sanitização e XSS | `test/models/content_sanitizer_test.rb` | ✅ |
 
-| # | Tarefa | Arquivos | Estimativa |
-|---|--------|----------|------------|
-| 5.1 | Configurar Minitest (Rails default) | `Gemfile`, `test/` | 1h |
-| 5.2 | Model specs para `Chapter` e `Book` | `test/models/` | 2h |
-| 5.3 | Request specs para chapters e books | `test/requests/` | 2h |
-| 5.4 | System specs para o editor | `test/system/` | 4h |
-| 5.5 | JS tests para Stimulus controllers | `test/javascript/` | 3h |
-| 5.6 | Testes de sanitização e XSS | `test/models/`, `test/system/` | 2h |
+### Detalhes da Implementação
 
-### Prioridade
-1. Model specs: `Chapter` (sanitização, word_count, position), `Book` (publishable?, sanitize)
-2. Request specs: CRUD chapters, publish/unpublish, ownership
-3. System specs: Editor interactions (bold, H1, lists, autosave, reload)
+- **Minitest (92 testes, 280 assertions, 0 failures):**
+  - `chapter_test.rb` — 17 testes: validações, posição, word_count/character_count, sanitização, callbacks
+  - `book_test.rb` — 15 testes: validações, enums, publishable?, sanitização, destroy cascade
+  - `content_sanitizer_test.rb` — 21 testes: tags permitidas/bloqueadas, atributos, URLs javascript:, edge cases
+  - `books_controller_test.rb` — 17 testes: CRUD, ownership, publish/unpublish, HTML válido
+  - `chapters_controller_test.rb` — 15 testes: CRUD, ownership, sanitização, reorder, word_count backend
+  - `editor_test.rb` (system) — 7 testes: carregamento, bold, word count, autosave, chapters, publicação
+
+- **Vitest (56 testes, 0 failures):**
+  - `word_count.test.js` — 7 testes: calculateWordCount, calculateCharacterCount
+  - `focus_trap.test.js` — 5 testes: focusableElements, trapFocus (Tab, Shift+Tab, outside)
+  - `word_count_controller.test.js` — 3 testes: eventos editor:contentChanged, editor:chapterChanged, sidebar
+  - `chapter_panel_controller.test.js` — 2 testes: reorder fallback, server refetch
+  - `auto_save_controller.test.js` — 17 testes: save, deduplicação, retry, beacon, debounce, getEditorData
+  - `editor_controller.test.js` — 13 testes: toolbar ARIA, botões, data attributes, undo/redo disabled
+  - `editor_link_controller.test.js` — 6 testes: popover, input, botões, error display
+
+### Cobertura
+
+| Area | Testes | Status |
+|------|--------|--------|
+| Model: Chapter | 17 | ✅ |
+| Model: Book | 15 | ✅ |
+| Model: ContentSanitizer | 21 | ✅ |
+| Controller: Books | 17 | ✅ |
+| Controller: Chapters | 15 | ✅ |
+| System: Editor | 7 | ✅ |
+| JS: word_count helper | 7 | ✅ |
+| JS: focus_trap helper | 5 | ✅ |
+| JS: word_count_controller | 3 | ✅ |
+| JS: chapter_panel_controller | 2 | ✅ |
+| JS: auto_save_controller | 17 | ✅ |
+| JS: editor_controller | 13 | ✅ |
+| JS: editor_link_controller | 6 | ✅ |
+
+### Validação
+
+| Critério | Status |
+|----------|--------|
+| `RAILS_ENV=test bin/rails test` | ✅ 92 testes, 0 failures |
+| `npm test` (vitest) | ✅ 56 testes, 0 failures |
+| Sanitização testada | ✅ |
+| Ownership testado | ✅ |
+| Autosave testado | ✅ |
+| Editor commands testados | ✅ |
 
 ---
 
-## Fase 6 — Polimento ✅ (parcial)
+## Fase 6 — Polimento ✅
 
 ### Objetivo
 Performance, organização e documentação.
@@ -179,7 +219,7 @@ Performance, organização e documentação.
 | 6.1 | Otimizar reorder para batch update | `chapters_controller.rb` | ✅ Funcional (transação + lock) |
 | 6.2 | Remover código morto | `editor_controller.js`, `book.rb` | ✅ Já removido |
 | 6.3 | Ativar CSP | `content_security_policy.rb` | ✅ Ativo |
-| 6.4 | Documentar o editor | `README.md` | ⏳ Pendente |
+| 6.4 | Documentar o editor | `README.md` | ✅ Documentado (arquitetura, features, rotas, testes)
 
 ### Notas
 - **Reorder:** Frontend envia `ordered_ids` em batch (PATCH único). Backend usa `update_column` individual dentro de transação com `lock`. Funcional, mas pode ser otimizado com `update_all` se necessário.
@@ -227,5 +267,6 @@ Performance, organização e documentação.
 
 ### O que falta (Fases 5-6)
 
-1. **Testes:** Nenhum teste existe. Priorizar model specs e request specs.
-2. **Polimento:** Reorder batch, código morto, CSP, documentação.
+Tudo concluído. O projeto possui:
+1. **Testes:** 92 Minitest + 56 Vitest = 148 testes, todos passando.
+2. **Polimento:** Reorder batch, código morto removido, CSP ativo, documentação completa no README.

@@ -80,4 +80,51 @@ class ChapterTest < ActiveSupport::TestCase
     book.reload
     assert_equal before - 2, book.word_count
   end
+
+  test "recalculates counts when content changes" do
+    book = books(:draft_book)
+    chapter = book.chapters.create!(title: "Mudar", content: "<p>um</p>")
+    assert_equal 1, chapter.word_count
+
+    chapter.update!(content: "<p>um dois tres quatro</p>")
+    assert_equal 4, chapter.word_count
+    assert_equal 19, chapter.character_count
+  end
+
+  test "word_count is not affected by HTML tags" do
+    book = books(:draft_book)
+    content = "<h1><strong><em><u><s><blockquote><code><pre>Título</code></pre></blockquote></s></u></em></strong></h1>"
+    chapter = book.chapters.create!(title: "Tags", content: content)
+    assert_equal 1, chapter.word_count
+  end
+
+  test "character_count includes spaces" do
+    book = books(:draft_book)
+    chapter = book.chapters.create!(title: "Espaços", content: "<p>a b c</p>")
+    assert_equal 5, chapter.character_count
+  end
+
+  test "position auto-increments correctly" do
+    book = books(:other_book)
+    c1 = book.chapters.create!(title: "A", content: "<p>a</p>")
+    c2 = book.chapters.create!(title: "B", content: "<p>b</p>")
+    c3 = book.chapters.create!(title: "C", content: "<p>c</p>")
+    assert_equal 1, c1.position
+    assert_equal 2, c2.position
+    assert_equal 3, c3.position
+  end
+
+  test "chapter belongs to a book" do
+    chapter = chapters(:chapter_one)
+    assert_equal books(:draft_book), chapter.book
+  end
+
+  test "destroying chapter reorders remaining positions" do
+    book = books(:draft_book)
+    chapter_two = chapters(:chapter_two)
+    chapters(:chapter_one).destroy
+
+    chapter_two.reload
+    assert_equal 0, chapter_two.position
+  end
 end
