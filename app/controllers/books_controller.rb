@@ -86,7 +86,7 @@ class BooksController < ApplicationController
 
     if @book.update(status: :published, published_at: Time.current, content: full_content)
       respond_to do |f|
-        f.html { redirect_to @book, notice: "Livro publicado com sucesso." }
+        f.html { turbo_refresh_or_redirect @book, notice: "Livro publicado com sucesso." }
         f.json { render json: { success: true, published_at: @book.published_at } }
       end
     else
@@ -107,7 +107,7 @@ class BooksController < ApplicationController
     end
 
     if @book.update(status: :draft, published_at: nil, content: nil)
-      redirect_to @book, notice: "Livro despublicado. Voltando para rascunho."
+      turbo_refresh_or_redirect @book, notice: "Livro despublicado. Voltando para rascunho."
     else
       redirect_to @book, alert: "Não foi possível despublicar o livro."
     end
