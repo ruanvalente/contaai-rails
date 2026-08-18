@@ -106,7 +106,7 @@ class BooksController < ApplicationController
       redirect_to @book, alert: "Livro não está publicado." and return
     end
 
-    if @book.update(status: :draft, published_at: nil)
+    if @book.update(status: :draft, published_at: nil, content: nil)
       redirect_to @book, notice: "Livro despublicado. Voltando para rascunho."
     else
       redirect_to @book, alert: "Não foi possível despublicar o livro."
@@ -140,7 +140,7 @@ class BooksController < ApplicationController
   end
 
   def book_params
-    params.require(:book).permit(:title, :description, :content, :category, :cover_color, :author_name, :cover_image)
+    params.require(:book).permit(:title, :description, :category, :cover_color, :author_name, :cover_image)
   end
 
   def handle_cover_removal

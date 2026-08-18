@@ -60,6 +60,43 @@
   border-radius: 0.5rem;
 }
 
+.editor-toolbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+}
+
+.editor-toolbar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.editor-toolbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.editor-toolbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 2px;
+}
+
+.editor-toolbar::after {
+  content: "";
+  position: sticky;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 24px;
+  pointer-events: none;
+  background: linear-gradient(to left, white 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.editor-toolbar.scrollable::after {
+  opacity: 1;
+}
+
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }

@@ -2,6 +2,8 @@ import { Controller } from "@hotwired/stimulus";
 import { Editor, Extension } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
+import Underline from "@tiptap/extension-underline";
+import TextAlign from "@tiptap/extension-text-align";
 import { calculateWordCount } from "../helpers/word_count";
 
 const EditorShortcuts = Extension.create({
@@ -14,6 +16,81 @@ const EditorShortcuts = Extension.create({
           new CustomEvent("editor:linkShortcut", { bubbles: true }),
         );
         return true;
+      },
+    };
+  },
+});
+
+const Indentation = Extension.create({
+  name: "indentation",
+  addOptions() {
+    return { types: ["paragraph", "heading"], minLevel: 0, maxLevel: 6 };
+  },
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          indent: {
+            default: 0,
+            parseHTML: (element) => {
+              const level = parseInt(element.style.marginLeft, 10) / 40 || 0;
+              return Math.min(Math.max(level, 0), 6);
+            },
+            renderHTML: (attributes) => {
+              if (!attributes.indent || attributes.indent <= 0) return {};
+              return { style: `margin-left: ${attributes.indent * 40}px` };
+            },
+          },
+        },
+      },
+    ];
+  },
+  addCommands() {
+    return {
+      indent: () => ({ tr, state, dispatch }) => {
+        const { selection } = state;
+        const pos = selection.$from;
+        const node = pos.node(pos.depth === 0 ? 0 : pos.depth);
+        if (!node || !this.options.types.includes(node.type.name)) return false;
+        const currentIndent = node.attrs.indent || 0;
+        if (currentIndent >= this.options.maxLevel) return false;
+        if (dispatch) {
+          tr.setNodeMarkup(pos.before(pos.depth === 0 ? 1 : pos.depth), undefined, {
+            ...node.attrs,
+            indent: currentIndent + 1,
+          });
+          dispatch(tr);
+        }
+        return true;
+      },
+      outdent: () => ({ tr, state, dispatch }) => {
+        const { selection } = state;
+        const pos = selection.$from;
+        const node = pos.node(pos.depth === 0 ? 0 : pos.depth);
+        if (!node || !this.options.types.includes(node.type.name)) return false;
+        const currentIndent = node.attrs.indent || 0;
+        if (currentIndent <= this.options.minLevel) return false;
+        if (dispatch) {
+          tr.setNodeMarkup(pos.before(pos.depth === 0 ? 1 : pos.depth), undefined, {
+            ...node.attrs,
+            indent: currentIndent - 1,
+          });
+          dispatch(tr);
+        }
+        return true;
+      },
+    };
+  },
+  addKeyboardShortcuts() {
+    return {
+      Tab: () => {
+        if (this.editor.isActive("codeBlock")) return false;
+        return this.editor.commands.indent();
+      },
+      "Shift-Tab": () => {
+        if (this.editor.isActive("codeBlock")) return false;
+        return this.editor.commands.outdent();
       },
     };
   },
@@ -44,6 +121,11 @@ export default class extends Controller {
             },
           },
         }),
+        Underline,
+        TextAlign.configure({
+          types: ["heading", "paragraph"],
+        }),
+        Indentation,
         Placeholder.configure({
           placeholder: "Comece a escrever sua história...",
           emptyEditorClass: "is-editor-empty",
@@ -77,6 +159,7 @@ export default class extends Controller {
     if (this.hasToolbarTarget) {
       this.toolbarTarget.addEventListener("keydown", this.handleToolbarKeydown);
       this.updateShortcutLabels();
+      this.setupToolbarScroll();
     }
     this.updateToolbarState();
   }
@@ -87,6 +170,9 @@ export default class extends Controller {
         "keydown",
         this.handleToolbarKeydown,
       );
+    }
+    if (this._toolbarResizeObserver) {
+      this._toolbarResizeObserver.disconnect();
     }
     if (this.editor) {
       this.editor.destroy();
@@ -132,6 +218,21 @@ export default class extends Controller {
           el.setAttribute("aria-keyshortcuts", shortcuts.replace(/Control/g, "Meta"));
         }
       });
+  }
+
+  setupToolbarScroll() {
+    if (!this.hasToolbarTarget) return;
+    const toolbar = this.toolbarTarget;
+
+    const checkScroll = () => {
+      const isScrollable = toolbar.scrollWidth > toolbar.clientWidth;
+      toolbar.classList.toggle("scrollable", isScrollable);
+    };
+
+    checkScroll();
+    const resizeObserver = new ResizeObserver(checkScroll);
+    resizeObserver.observe(toolbar);
+    this._toolbarResizeObserver = resizeObserver;
   }
 
   dispatchContentChanged(editor) {
@@ -191,6 +292,26 @@ export default class extends Controller {
 
   codeBlock() {
     this.editor.chain().focus().toggleCodeBlock().run();
+  }
+
+  alignLeft() {
+    this.editor.chain().focus().setTextAlign("left").run();
+  }
+
+  alignCenter() {
+    this.editor.chain().focus().setTextAlign("center").run();
+  }
+
+  alignRight() {
+    this.editor.chain().focus().setTextAlign("right").run();
+  }
+
+  indent() {
+    this.editor.chain().focus().indent().run();
+  }
+
+  outdent() {
+    this.editor.chain().focus().outdent().run();
   }
 
   horizontalRule() {
@@ -261,6 +382,12 @@ export default class extends Controller {
         return this.editor.isActive("codeBlock");
       case "link":
         return this.editor.isActive("link");
+      case "alignLeft":
+        return this.editor.isActive({ textAlign: "left" });
+      case "alignCenter":
+        return this.editor.isActive({ textAlign: "center" });
+      case "alignRight":
+        return this.editor.isActive({ textAlign: "right" });
       default:
         return false;
     }

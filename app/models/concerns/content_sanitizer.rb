@@ -15,6 +15,8 @@ module ContentSanitizer
     href title target rel align
   ].freeze
 
+  ALLOWED_PROTOCOLS = %w[http https mailto].freeze
+
   included do
     before_save :sanitize_content, if: :content_changed?
   end
@@ -22,7 +24,35 @@ module ContentSanitizer
   def self.sanitize(html)
     return html if html.blank?
 
-    Rails::HTML5::SafeListSanitizer.new.sanitize(html, tags: ALLOWED_TAGS, attributes: ALLOWED_ATTRIBUTES)
+    sanitized = Rails::HTML5::SafeListSanitizer.new.sanitize(
+      html,
+      tags: ALLOWED_TAGS,
+      attributes: ALLOWED_ATTRIBUTES,
+      protocols: ALLOWED_PROTOCOLS
+    )
+
+    sanitized = validate_urls!(sanitized) if sanitized.present?
+    sanitized
+  end
+
+  def self.validate_urls!(html)
+    return html if html.blank?
+
+    doc = Nokogiri::HTML::DocumentFragment.parse(html)
+    doc.css("a[href]").each do |link|
+      href = link["href"]
+      next if href.blank?
+
+      begin
+        uri = URI.parse(href)
+        unless ALLOWED_PROTOCOLS.include?(uri.scheme)
+          link.remove_attribute("href")
+        end
+      rescue URI::InvalidURIError
+        link.remove_attribute("href")
+      end
+    end
+    doc.to_html
   end
 
   private

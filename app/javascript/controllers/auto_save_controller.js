@@ -172,13 +172,14 @@ export default class extends Controller {
     const editorData = this.getEditorData()
     if (!editorData) return
 
+    const form = new FormData()
+    form.append("_method", "patch")
+    form.append("authenticity_token", this.csrfToken)
+    form.append("chapter[content]", editorData.content)
+
     navigator.sendBeacon(
       `/books/${this.bookIdValue}/chapters/${this.chapterIdValue}`,
-      new URLSearchParams({
-        "_method": "patch",
-        "chapter[content]": editorData.content,
-        "authenticity_token": this.csrfToken
-      })
+      form
     )
 
     this.dirty = false

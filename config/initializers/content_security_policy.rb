@@ -16,7 +16,7 @@ Rails.application.configure do
     policy.style_src   :self, :https, :unsafe_inline
     policy.connect_src :self
     # Specify URI for violation reports
-    # policy.report_uri "/csp-violation-report-endpoint"
+    policy.report_uri "/csp-violation-report-endpoint"
   end
 
   # Generate session nonces for permitted importmap, inline scripts, and inline styles.
