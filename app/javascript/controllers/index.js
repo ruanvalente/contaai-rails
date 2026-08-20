@@ -7,6 +7,9 @@ import { application } from "./application"
 import AutoSaveController from "./auto_save_controller"
 application.register("auto-save", AutoSaveController)
 
+import ChapterIndexController from "./chapter_index_controller"
+application.register("chapter-index", ChapterIndexController)
+
 import ChapterPanelController from "./chapter_panel_controller"
 application.register("chapter-panel", ChapterPanelController)
 
@@ -39,6 +42,12 @@ application.register("password-toggle", PasswordToggleController)
 
 import PublishController from "./publish_controller"
 application.register("publish", PublishController)
+
+import ReadingController from "./reading_controller"
+application.register("reading", ReadingController)
+
+import ReadingProgressController from "./reading_progress_controller"
+application.register("reading-progress", ReadingProgressController)
 
 import SearchController from "./search_controller"
 application.register("search", SearchController)

@@ -167,4 +167,41 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Hello world"
   end
+
+  test "read with chapter_id shows specific chapter" do
+    sign_in @reader
+    get read_book_path(@published_book, chapter_id: chapters(:published_chapter).id)
+    assert_response :success
+    assert_includes response.body, "Capítulo 1"
+  end
+
+  test "read with chapter_index shows chapter at index" do
+    sign_in @reader
+    get read_book_path(@published_book, chapter_index: 0)
+    assert_response :success
+    assert_includes response.body, "Hello world"
+  end
+
+  test "read creates reading progress for new book" do
+    sign_in @reader
+    ReadingProgress.where(user: @reader, book: @published_book).destroy_all
+
+    assert_difference("ReadingProgress.count", 1) do
+      get read_book_path(@published_book)
+    end
+  end
+
+  test "read redirects when book has no chapters" do
+    sign_in @reader
+    get read_book_path(@other_book)
+    assert_redirected_to book_path(@other_book)
+    assert_equal "Este livro não possui capítulos ainda.", flash[:alert]
+  end
+
+  test "read shows chapter navigation" do
+    sign_in @reader
+    get read_book_path(@published_book)
+    assert_response :success
+    assert_includes response.body, "Capítulo"
+  end
 end
