@@ -17,10 +17,10 @@ class ReadingProgress < ApplicationRecord
     new_percentage = ((read_count.to_f / total) * 100).round
 
     new_status = if new_percentage >= 100
-                   :completed
-                 else
-                   :reading
-                 end
+      :completed
+    else
+      :reading
+    end
 
     update!(
       percentage: new_percentage,

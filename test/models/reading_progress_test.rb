@@ -30,7 +30,7 @@ class ReadingProgressTest < ActiveSupport::TestCase
   end
 
   test "valid percentages" do
-    [0, 50, 100].each do |pct|
+    [ 0, 50, 100 ].each do |pct|
       progress = ReadingProgress.new(user: @user, book: @book, percentage: pct)
       assert progress.valid?, "Percentage #{pct} should be valid"
     end
