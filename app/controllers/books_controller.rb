@@ -120,9 +120,49 @@ class BooksController < ApplicationController
   end
 
   def read
+    @chapters = @book.chapters.ordered
+
+    if @chapters.empty?
+      redirect_to @book, alert: "Este livro não possui capítulos ainda."
+      return
+    end
+
+    if user_signed_in?
+      @reading_progress = current_user.reading_progresses.find_or_create_by(book: @book) do |rp|
+        rp.status = :reading
+        rp.started_at = Time.current
+        rp.last_read_at = Time.current
+      end
+
+      @active_chapter = resolve_chapter(default: @reading_progress.current_chapter)
+
+      @reading_progress.update(
+        current_chapter: @active_chapter,
+        last_read_at: Time.current
+      )
+      @reading_progress.recalculate_percentage!
+    else
+      @active_chapter = resolve_chapter
+      @reading_progress = nil
+    end
+
+    @current_index = @chapters.index(@active_chapter) || 0
+    @previous_chapter = @current_index > 0 ? @chapters[@current_index - 1] : nil
+    @next_chapter = @current_index < @chapters.size - 1 ? @chapters[@current_index + 1] : nil
   end
 
   private
+
+  def resolve_chapter(default: nil)
+    if params[:chapter_id].present?
+      @chapters.find_by(id: params[:chapter_id]) || default || @chapters.first
+    elsif params[:chapter_index].present?
+      index = params[:chapter_index].to_i
+      @chapters[index] || default || @chapters.first
+    else
+      default || @chapters.first
+    end
+  end
 
   def set_book
     @book = Book.find(params[:id])

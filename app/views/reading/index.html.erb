@@ -5,7 +5,7 @@
   </div>
 
   <% if user_signed_in? %>
-    <% reading_progresses = current_user.reading_progresses.includes(:book).where(status: [:in_progress, :completed]).order(updated_at: :desc).limit(10) %>
+    <% reading_progresses = current_user.reading_progresses.includes(:book, :current_chapter).where(status: [:reading, :completed]).order(last_read_at: :desc).limit(10) %>
     <% if reading_progresses.any? %>
       <div class="space-y-4">
         <% reading_progresses.each do |progress| %>
@@ -20,6 +20,9 @@
             <div class="flex-1 min-w-0">
               <h3 class="font-semibold text-text-primary truncate"><%= progress.book.title %></h3>
               <p class="text-sm text-text-secondary truncate"><%= progress.book.author_name %></p>
+              <% if progress.current_chapter %>
+                <p class="text-xs text-text-muted mt-1">Cap. <%= progress.current_chapter.position + 1 %>: <%= progress.current_chapter.title %></p>
+              <% end %>
               <div class="mt-2 flex items-center gap-2">
                 <div class="flex-1 bg-bg-sec rounded-full h-2">
                   <div class="bg-primary h-2 rounded-full" style="width: <%= progress.percentage %>%"></div>
@@ -27,7 +30,7 @@
                 <span class="text-xs text-text-muted"><%= progress.percentage %>%</span>
               </div>
             </div>
-            <%= link_to read_book_path(progress.book), class: "px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors text-sm font-medium" do %>
+            <%= link_to read_book_path(progress.book, chapter_id: progress.current_chapter_id), class: "px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors text-sm font-medium" do %>
               Continuar
             <% end %>
           </div>
