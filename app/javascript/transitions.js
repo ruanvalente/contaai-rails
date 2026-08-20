@@ -2,13 +2,7 @@ const prefersReducedMotion = window.matchMedia(
   "(prefers-reduced-motion: reduce)",
 ).matches;
 
-function getVisitDirection() {
-  return document.documentElement.dataset.turboVisitDirection || "none";
-}
-
-function setupPageTransitions() {
-  if (prefersReducedMotion) return;
-
+if (!prefersReducedMotion) {
   let exitTimeout;
 
   document.addEventListener("turbo:before-render", (event) => {
@@ -18,70 +12,21 @@ function setupPageTransitions() {
 
     if (morphVariant) return;
 
-    const direction = getVisitDirection();
-    const wrapper = document.querySelector("[style*='view-transition-name']");
-
-    if (wrapper) {
-      wrapper.classList.remove(
-        "slide-out-left",
-        "slide-in-right",
-        "slide-out-right",
-        "slide-in-left",
-      );
-
-      if (direction === "back") {
-        wrapper.classList.add("slide-out-right");
-      } else {
-        wrapper.classList.add("slide-out-left");
-      }
-    }
+    document.body.classList.add("turbo-exiting");
   });
 
   document.addEventListener("turbo:render", () => {
     clearTimeout(exitTimeout);
     exitTimeout = setTimeout(() => {
-      const oldWrapper = document.querySelector(
-        "[style*='view-transition-name']",
-      );
-
-      if (oldWrapper) {
-        oldWrapper.classList.remove("slide-out-left", "slide-out-right");
-      }
+      document.body.classList.remove("turbo-exiting");
+      document.body.classList.add("turbo-entering");
     }, 20);
   });
 
   document.addEventListener("turbo:load", () => {
     clearTimeout(exitTimeout);
-    const direction = getVisitDirection();
-    const wrapper = document.querySelector("[style*='view-transition-name']");
-
-    if (wrapper) {
-      wrapper.classList.remove(
-        "slide-out-left",
-        "slide-out-right",
-        "slide-in-right",
-        "slide-in-left",
-      );
-
-      if (direction === "back") {
-        wrapper.classList.add("slide-in-left");
-      } else {
-        wrapper.classList.add("slide-in-right");
-      }
-
-      wrapper.addEventListener(
-        "animationend",
-        () => {
-          wrapper.classList.remove("slide-in-right", "slide-in-left");
-        },
-        { once: true },
-      );
-    }
+    document.body.classList.remove("turbo-entering");
   });
-}
-
-function setupMorphTransitions() {
-  if (prefersReducedMotion) return;
 
   document.addEventListener("turbo:before-morph-element", (event) => {
     const el = event.target;
@@ -104,6 +49,3 @@ function setupMorphTransitions() {
     );
   });
 }
-
-setupPageTransitions();
-setupMorphTransitions();

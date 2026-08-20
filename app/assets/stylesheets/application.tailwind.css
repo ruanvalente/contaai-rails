@@ -107,42 +107,24 @@
   to { opacity: 0; transform: translateY(-10px); }
 }
 
-/* ── Page Transitions fallback (no View Transition API) ── */
+/* ── Page Transitions (Turbo Drive navigation) ── */
 
-@keyframes turbo-slide-out-left {
-  from { opacity: 1; transform: translateX(0); }
-  to   { opacity: 0; transform: translateX(-30%); }
+@keyframes turbo-page-exit {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-8px); }
 }
 
-@keyframes turbo-slide-in-right {
-  from { opacity: 0; transform: translateX(30%); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes turbo-slide-out-right {
-  from { opacity: 1; transform: translateX(0); }
-  to   { opacity: 0; transform: translateX(30%); }
-}
-
-@keyframes turbo-slide-in-left {
-  from { opacity: 0; transform: translateX(-30%); }
-  to   { opacity: 1; transform: translateX(0); }
+@keyframes turbo-page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .turbo-exiting {
-  animation: turbo-slide-out-left 200ms ease-in forwards;
+  animation: turbo-page-exit 120ms ease-in forwards;
 }
 
 .turbo-entering {
-  animation: turbo-slide-in-right 200ms ease-out forwards;
-}
-
-:root:where([data-turbo-visit-direction="back"]) .turbo-exiting {
-  animation-name: turbo-slide-out-right;
-}
-
-:root:where([data-turbo-visit-direction="back"]) .turbo-entering {
-  animation-name: turbo-slide-in-left;
+  animation: turbo-page-enter 180ms ease-out forwards;
 }
 
 /* ── Turbo Morph transitions ── */
