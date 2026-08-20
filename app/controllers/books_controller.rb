@@ -16,7 +16,7 @@ class BooksController < ApplicationController
   def create
     @book = current_user.books.build(book_params)
     if @book.save
-      redirect_to @book, notice: "Livro criado com sucesso."
+      redirect_to @book, notice: "Livro criado com sucesso.", status: :see_other
     else
       render :new, status: :unprocessable_entity
     end
@@ -30,7 +30,7 @@ class BooksController < ApplicationController
     authorize_book_owner! or return
     handle_cover_removal
     if @book.update(book_params)
-      redirect_to @book, notice: "Livro atualizado com sucesso."
+      redirect_to @book, notice: "Livro atualizado com sucesso.", status: :see_other
     else
       render :edit, status: :unprocessable_entity
     end
@@ -40,7 +40,7 @@ class BooksController < ApplicationController
     authorize_book_owner! or return
     @book.destroy
     respond_to do |f|
-      f.html { redirect_to dashboard_path, notice: "Livro excluído com sucesso." }
+      f.html { redirect_to dashboard_path, notice: "Livro excluído com sucesso.", status: :see_other }
       f.json { head :no_content }
     end
   end
@@ -86,7 +86,7 @@ class BooksController < ApplicationController
 
     if @book.update(status: :published, published_at: Time.current, content: full_content)
       respond_to do |f|
-        f.html { redirect_to @book, notice: "Livro publicado com sucesso." }
+        f.html { redirect_to @book, notice: "Livro publicado com sucesso.", status: :see_other }
         f.json { render json: { success: true, published_at: @book.published_at } }
       end
     else
@@ -107,7 +107,7 @@ class BooksController < ApplicationController
     end
 
     if @book.update(status: :draft, published_at: nil, content: nil)
-      redirect_to @book, notice: "Livro despublicado. Voltando para rascunho."
+      redirect_to @book, notice: "Livro despublicado. Voltando para rascunho.", status: :see_other
     else
       redirect_to @book, alert: "Não foi possível despublicar o livro."
     end
