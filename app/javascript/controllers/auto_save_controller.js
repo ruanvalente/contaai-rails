@@ -1,5 +1,4 @@
 import { Controller } from "@hotwired/stimulus"
-import { Turbo } from "@hotwired/turbo-rails"
 
 export default class extends Controller {
   static values = {
@@ -14,7 +13,6 @@ export default class extends Controller {
     this.dirty = false
     this.saving = false
     this.savePromise = null
-    this.pendingNavigation = false
 
     this.boundSaveOnBeforeUnload = this.saveOnBeforeUnload.bind(this)
     this.boundSaveOnVisibilityChange = this.saveOnVisibilityChange.bind(this)
@@ -152,19 +150,9 @@ export default class extends Controller {
     }
   }
 
-  saveOnTurboVisit(event) {
-    if (this.dirty && this.chapterIdValue && !this.pendingNavigation) {
-      event.preventDefault()
-      this.pendingNavigation = true
-      const { url, action } = event.detail
-      this.save({ flush: true }).then((status) => {
-        this.pendingNavigation = false
-        if (status === "saved" || status === "terminal") {
-          Turbo.visit(url, { action })
-        } else {
-          this.dirty = true
-        }
-      })
+  saveOnTurboVisit(_event) {
+    if (this.dirty && this.chapterIdValue) {
+      this.saveViaBeacon()
     }
   }
 

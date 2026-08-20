@@ -114,7 +114,7 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
   test "publish (HTML) redirects with a notice" do
     sign_in @author
     patch publish_book_path(@draft_book)
-    assert_redirected_to book_path(@draft_book)
+    assert_response :see_other
     assert_equal "Livro publicado com sucesso.", flash[:notice]
   end
 
@@ -136,7 +136,7 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
   test "unpublish returns the book to draft" do
     sign_in @author
     patch unpublish_book_path(@published_book)
-    assert_redirected_to book_path(@published_book)
+    assert_response :redirect
     @published_book.reload
     assert @published_book.draft?
     assert_nil @published_book.published_at

@@ -107,6 +107,67 @@
   to { opacity: 0; transform: translateY(-10px); }
 }
 
+/* ── Page Transitions fallback (no View Transition API) ── */
+
+@keyframes turbo-slide-out-left {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-30%); }
+}
+
+@keyframes turbo-slide-in-right {
+  from { opacity: 0; transform: translateX(30%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes turbo-slide-out-right {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(30%); }
+}
+
+@keyframes turbo-slide-in-left {
+  from { opacity: 0; transform: translateX(-30%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.turbo-exiting {
+  animation: turbo-slide-out-left 200ms ease-in forwards;
+}
+
+.turbo-entering {
+  animation: turbo-slide-in-right 200ms ease-out forwards;
+}
+
+:root:where([data-turbo-visit-direction="back"]) .turbo-exiting {
+  animation-name: turbo-slide-out-right;
+}
+
+:root:where([data-turbo-visit-direction="back"]) .turbo-entering {
+  animation-name: turbo-slide-in-left;
+}
+
+/* ── Turbo Morph transitions ── */
+
+@keyframes turbo-morph-fade {
+  from { opacity: 0.6; }
+  to   { opacity: 1; }
+}
+
+[data-turbo-variant="morph"] {
+  animation: turbo-morph-fade 150ms ease-out;
+}
+
+/* ── Respect reduced motion preference ── */
+
+@media (prefers-reduced-motion: reduce) {
+  .turbo-exiting,
+  .turbo-entering,
+  [data-turbo-variant="morph"] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   color: var(--color-text-muted);
