@@ -16,6 +16,13 @@ class ApplicationController < ActionController::Base
     devise_parameter_sanitizer.permit(:account_update, keys: [ :name, :bio, :avatar ])
   end
 
+  def turbo_morph_refresh(notice: nil)
+    response.headers["Turbo-Refresh-Method"] = "morph"
+    response.headers["Turbo-Refresh-Scroll"] = "preserve"
+    flash[:notice] = notice if notice
+    render :show, status: :ok
+  end
+
   private
 
   def set_layout
