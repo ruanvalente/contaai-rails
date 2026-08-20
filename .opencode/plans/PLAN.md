@@ -313,3 +313,307 @@ Todos os 47+ itens do EDITOR-REFACTOR-PLAN.md foram implementados:
 - **Fase 6** (Polimento): 6/6 ✅
 - **Matriz de Priorização** (35 itens): 35/35 ✅
 - **Checklist de Implementação**: Todos os itens marcados ✅
+
+---
+
+## CHAPTER-IMPROVEMENT-PLAN.md — Experiência de Leitura
+
+> **Data de início:** 20/08/2026
+>
+> **Referência:** `.opencode/plans/CHAPTER-IMPROVEMENT-PLAN.md`
+
+---
+
+## Fase 0 — Análise da Codebase
+
+**Status:** ✅ Concluída
+**Data:** 20/08/2026
+
+### Análise Realizada
+
+Mapeamento completo da codebase relacionada à leitura:
+
+**Backend:**
+- Models: `Book`, `Chapter`, `User`, `ReadingProgress`, `UserReadingPreference`, `Rating`, `Favorite`, `AuthorFollow`
+- `ReadingProgress` já existia com campos: `user_id`, `book_id`, `percentage`, `status`, `started_at`, `completed_at`
+- `UserReadingPreference` existia mas não era utilizada na leitura
+- Controllers: `BooksController` (com `read` action), `ChaptersController` (CRUD JSON), `ReadingController` (placeholder), `LibraryController`
+- Rotas: `GET /books/:id/read` para leitura, `GET /books/:id/write` para editor
+
+**Frontend:**
+- `books/read.html.erb`: Página simples que mostrava conteúdo concatenado de todos os capítulos
+- `reading/index.html.erb`: Sessão de leitura com bug no enum (`:in_progress` vs `:reading`)
+- Layout `authenticated.html.erb` com sidebar principal
+- Estilos: TailwindCSS com plugin `@tailwindcss/typography`
+- Tipografia: Cormorant Garamond para leitura, Playfair Display para títulos, Inter para UI
+
+**Problemas Identificados:**
+1. Sem navegação entre capítulos
+2. Sem progresso de leitura persistente
+3. Sem índice de capítulos
+4. `reading/index.html.erb` com bug no enum
+5. `ReadingProgress` sem rastreamento de capítulo atual
+6. Sem Stimulus controllers para leitura
+
+---
+
+## Fase 1 — Modelo de Dados
+
+**Status:** ✅ Concluída
+**Data:** 20/08/2026
+
+### Tarefas Executadas
+
+| # | Tarefa | Status | Arquivo(s) | Observação |
+|---|--------|--------|------------|------------|
+| 1 | Migration: adicionar `current_chapter_id` e `last_read_at` | ✅ | `db/migrate/20260820171533_...` | `add_reference` com foreign key para `chapters` |
+| 2 | Atualizar `ReadingProgress` model | ✅ | `app/models/reading_progress.rb` | Adicionado `belongs_to :current_chapter`, `recalculate_percentage!`, `touch_last_read!` |
+| 3 | Criar fixtures para testes | ✅ | `test/fixtures/reading_progresses.yml` | Dois fixtures: um `reading`, um `completed` |
+
+### Arquitetura de Dados
+
+**Opção escolhida:** Tabela de progresso por `user + book` com referência ao capítulo atual
+
+**Vantagens:**
+- Simplicidade: uma linha por usuário/livro
+- Performance: query única para buscar progresso
+- Compatível com estrutura existente
+- Escalável para livros com muitos capítulos
+
+**Campos adicionados:**
+- `current_chapter_id` (integer, nullable, foreign key → chapters)
+- `last_read_at` (datetime)
+
+**Índices:**
+- `[user_id, book_id]` (unique) — já existente
+- `current_chapter_id` — adicionado pela migration
+
+---
+
+## Fase 2 — Backend
+
+**Status:** ✅ Concluída
+**Data:** 20/08/2026
+
+### Tarefas Executadas
+
+| # | Tarefa | Status | Arquivo(s) | Observação |
+|---|--------|--------|------------|------------|
+| 1 | Criar `ReadingProgressesController` | ✅ | `app/controllers/reading_progresses_controller.rb` | `update` action com `find_or_initialize_by`, `recalculate_percentage!` |
+| 2 | Atualizar `BooksController#read` | ✅ | `app/controllers/books_controller.rb:122-175` | Suporta `chapter_id` e `chapter_index`, cria progresso, calcula navegação |
+| 3 | Adicionar rota `reading_progress` | ✅ | `config/routes.rb:38` | `resource :reading_progress, only: [:update]` |
+| 4 | Corrigir bug no `reading/index.html.erb` | ✅ | `app/views/reading/index.html.erb:8` | `:in_progress` → `:reading`, adicionado `current_chapter` no includes |
+
+### Fluxo do Backend
+
+1. Usuário acessa `GET /books/:id/read`
+2. Controller carrega capítulos ordenados
+3. Se autenticado, busca ou cria `ReadingProgress`
+4. Determina capítulo ativo (via `chapter_id`, `chapter_index`, ou progresso salvo)
+5. Atualiza progresso com capítulo atual e timestamp
+6. Calcula percentual de progresso
+7. Prepara dados de navegação (anterior/próximo)
+
+---
+
+## Fase 3 — Frontend: Layout de Leitura
+
+**Status:** ✅ Concluída
+**Data:** 20/08/2026
+
+### Tarefas Executadas
+
+| # | Tarefa | Status | Arquivo(s) | Observação |
+|---|--------|--------|------------|------------|
+| 1 | Reescrever `books/read.html.erb` | ✅ | `app/views/books/read.html.erb` | Layout completo com sidebar, navegação, progresso |
+| 2 | Criar sidebar de índice de capítulos | ✅ | No mesmo arquivo | Desktop: sidebar fixa; Mobile: drawer |
+| 3 | Adicionar barra de progresso | ✅ | No mesmo arquivo | Header sticky com progress bar |
+| 4 | Criar navegação anterior/próximo | ✅ | No mesmo arquivo | Cards clicáveis com títulos dos capítulos |
+| 5 | Adicionar estilos de leitura | ✅ | `application.tailwind.css:186-250` | Tipografia, responsividade, print styles |
+
+### Layout Proposto
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│ Header (sticky)                                                │
+│ [≡] [← Voltar]                    Capítulo 2/5    ████████░░  │
+├──────────────┬────────────────────────────────────────────────┤
+│              │                                                │
+│ Sidebar      │ Capítulo 2                                     │
+│ Índice       │                                                │
+│              │ Título do Capítulo                             │
+│ ● Cap 1 ✓   │                                                │
+│ ● Cap 2 Atual│ Conteúdo da leitura...                        │
+│ ● Cap 3     │                                                │
+│ ● Cap 4     │                                                │
+│ ● Cap 5     │                                                │
+│              │                                                │
+│ Progresso    │ ┌──────────────┐ ┌────────────────┐            │
+│ 40%          │ │ ← Anterior  │ │ Próximo →      │            │
+│ ████░░░░░░░  │ └──────────────┘ └────────────────┘            │
+└──────────────┴────────────────────────────────────────────────┘
+```
+
+---
+
+## Fase 4 — Frontend: Stimulus Controllers
+
+**Status:** ✅ Concluída
+**Data:** 20/08/2026
+
+### Tarefas Executadas
+
+| # | Tarefa | Status | Arquivo(s) | Observação |
+|---|--------|--------|------------|------------|
+| 1 | Criar `reading_controller.js` | ✅ | `app/javascript/controllers/reading_controller.js` | Atalhos de teclado, navegação entre capítulos |
+| 2 | Criar `chapter_index_controller.js` | ✅ | `app/javascript/controllers/chapter_index_controller.js` | Drawer/sidebar toggle, focus management |
+| 3 | Criar `reading_progress_controller.js` | ✅ | `app/javascript/controllers/reading_progress_controller.js` | Persistência de progresso via fetch API |
+| 4 | Registrar controllers no index | ✅ | `app/javascript/controllers/index.js` | 3 novos controllers registrados |
+
+### Funcionalidades
+
+**`reading_controller.js`:**
+- Atalhos de teclado: `←` (anterior), `→` (próximo), `i` (índice)
+- Navegação via Turbo.visit
+- Não interfere em inputs/textareas
+
+**`chapter_index_controller.js`:**
+- Toggle do drawer/sidebar
+- Gerenciamento de foco
+- Fecha com Escape
+- Previne scroll do body quando aberto
+
+**`reading_progress_controller.js`:**
+- Persiste progresso via PATCH request
+- Atualiza automaticamente ao acessar capítulo
+- Emite evento `reading-progress:updated`
+
+---
+
+## Fase 5 — Mobile
+
+**Status:** ✅ Concluída
+**Data:** 20/08/2026
+
+### Experiência Mobile
+
+- **Índice de capítulos:** Drawer lateral com overlay
+- **Barra de progresso:** Visível mas compacta
+- **Navegação:** Cards menores, toque fácil
+- **Conteúdo:** Tipografia ajustada para telas pequenas
+- **Áreas de toque:** Mínimo 44px para todos os botões
+
+---
+
+## Fase 6 — Acessibilidade
+
+**Status:** ✅ Concluída
+**Data:** 20/08/2026
+
+### Recursos Implementados
+
+- `aria-label` em todos os botões interativos
+- `aria-current="page"` no capítulo atual do índice
+- `role="progressbar"` com `aria-valuenow/min/max`
+- `aria-hidden` no drawer quando fechado
+- `aria-controls` ligando botões aos painéis
+- Foco gerenciado ao abrir/fechar drawer
+- Navegação completa por teclado
+- Contraste adequado para indicadores de progresso
+- Não depende apenas de cor para indicar estado
+
+---
+
+## Fase 7 — Testes
+
+**Status:** ✅ Concluída
+**Data:** 20/08/2026
+
+### Tarefas Executadas
+
+| # | Tarefa | Status | Arquivo(s) | Observação |
+|---|--------|--------|------------|------------|
+| 1 | Model specs para `ReadingProgress` | ✅ | `test/models/reading_progress_test.rb` | 8 testes: validações, enum, scopes, recálculo |
+| 2 | Controller specs para `ReadingProgressesController` | ✅ | `test/controllers/reading_progresses_controller_test.rb` | 5 testes: CRUD, autenticação, erros |
+| 3 | Atualizar testes de `BooksController` | ✅ | `test/controllers/books_controller_test.rb` | 7 novos testes para read com chapters |
+
+### Resultado dos Testes
+
+```
+Rails:  109 runs, 322 assertions, 0 failures, 0 errors
+JS:     56 tests passed (7 test files)
+```
+
+---
+
+## Fase 8 — Polish e Documentação
+
+**Status:** ✅ Concluída
+**Data:** 20/08/2026
+
+### Itens de Polish
+
+- CSS build passa
+- JS build passa
+- Todos os testes passam
+- Responsividade verificada
+- Acessibilidade implementada
+- Documentação no PLAN.md
+
+---
+
+## Resumo Final — CHAPTER-IMPROVEMENT-PLAN
+
+| Fase | Status | Tarefas |
+|------|--------|---------|
+| 0 — Análise da Codebase | ✅ | Completa |
+| 1 — Modelo de Dados | ✅ | 3/3 |
+| 2 — Backend | ✅ | 4/4 |
+| 3 — Frontend: Layout | ✅ | 5/5 |
+| 4 — Frontend: Controllers | ✅ | 4/4 |
+| 5 — Mobile | ✅ | Completa |
+| 6 — Acessibilidade | ✅ | Completa |
+| 7 — Testes | ✅ | 3/3 |
+| 8 — Polish | ✅ | Completa |
+| **Total** | **✅** | **22/22** |
+
+### Arquivos Criados/Modificados
+
+**Novos:**
+- `app/controllers/reading_progresses_controller.rb`
+- `app/javascript/controllers/reading_controller.js`
+- `app/javascript/controllers/chapter_index_controller.js`
+- `app/javascript/controllers/reading_progress_controller.js`
+- `db/migrate/20260820171533_add_chapter_tracking_to_reading_progresses.rb`
+- `test/models/reading_progress_test.rb`
+- `test/controllers/reading_progresses_controller_test.rb`
+- `test/fixtures/reading_progresses.yml`
+
+**Modificados:**
+- `app/models/reading_progress.rb` — Adicionado `current_chapter`, `recalculate_percentage!`, `touch_last_read!`
+- `app/controllers/books_controller.rb` — `read` action completamente reescrita
+- `app/views/books/read.html.erb` — Layout completo de leitura
+- `app/views/reading/index.html.erb` — Bug fix no enum, shows chapter info
+- `app/assets/stylesheets/application.tailwind.css` — Estilos de leitura
+- `app/javascript/controllers/index.js` — 3 novos controllers
+- `config/routes.rb` — Rota `reading_progress`
+- `test/controllers/books_controller_test.rb` — 7 novos testes
+
+### Funcionalidades Implementadas
+
+1. ✅ Navegação entre capítulos (anterior/próximo)
+2. ✅ Índice de capítulos (sidebar desktop, drawer mobile)
+3. ✅ Progresso de leitura persistente
+4. ✅ Continuar de onde parou
+5. ✅ Indicador visual de progresso (barra + texto)
+6. ✅ Atalhos de teclado (←, →, i)
+7. ✅ Layout responsivo mobile-first
+8. ✅ Acessibilidade completa (ARIA, keyboard nav)
+9. ✅ Testes automatizados
+
+### Testes Finais
+
+- **Rails:** 109 runs, 322 assertions, 0 failures ✅
+- **JS:** 56 tests passing (vitest) ✅
+- **JS build:** OK ✅
+- **CSS build:** OK ✅

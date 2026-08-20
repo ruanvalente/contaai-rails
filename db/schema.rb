@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_17_131026) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_20_171533) do
   create_schema "extensions"
 
   # These are extensions that must be enabled in order to support this database
@@ -123,13 +123,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_131026) do
     t.bigint "book_id", null: false
     t.datetime "completed_at"
     t.datetime "created_at", null: false
+    t.bigint "current_chapter_id"
     t.text "current_position", default: ""
+    t.datetime "last_read_at"
     t.integer "percentage", default: 0, null: false
     t.datetime "started_at"
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["book_id"], name: "index_reading_progresses_on_book_id"
+    t.index ["current_chapter_id"], name: "index_reading_progresses_on_current_chapter_id"
     t.index ["user_id", "book_id"], name: "index_reading_progresses_on_user_id_and_book_id", unique: true
     t.index ["user_id"], name: "index_reading_progresses_on_user_id"
     t.check_constraint "percentage >= 0 AND percentage <= 100", name: "reading_progresses_percentage_check"
@@ -326,6 +329,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_131026) do
   add_foreign_key "public.ratings", "public.books"
   add_foreign_key "public.ratings", "public.users"
   add_foreign_key "public.reading_progresses", "public.books"
+  add_foreign_key "public.reading_progresses", "public.chapters", column: "current_chapter_id"
   add_foreign_key "public.reading_progresses", "public.users"
   add_foreign_key "public.solid_queue_blocked_executions", "public.solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "public.solid_queue_claimed_executions", "public.solid_queue_jobs", column: "job_id", on_delete: :cascade

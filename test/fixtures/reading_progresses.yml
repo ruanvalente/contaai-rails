@@ -1,0 +1,18 @@
+one:
+  user: author
+  book: published_book
+  current_chapter: published_chapter
+  percentage: 50
+  status: reading
+  last_read_at: <%= 1.hour.ago %>
+  started_at: <%= 1.day.ago %>
+
+two:
+  user: reader
+  book: published_book
+  current_chapter: published_chapter
+  percentage: 100
+  status: completed
+  last_read_at: <%= 1.day.ago %>
+  started_at: <%= 3.days.ago %>
+  completed_at: <%= 1.day.ago %>

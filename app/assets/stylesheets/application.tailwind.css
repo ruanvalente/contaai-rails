@@ -107,6 +107,49 @@
   to { opacity: 0; transform: translateY(-10px); }
 }
 
+/* ── Page Transitions (Turbo Drive navigation) ── */
+
+@keyframes turbo-page-exit {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-8px); }
+}
+
+@keyframes turbo-page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.turbo-exiting {
+  animation: turbo-page-exit 120ms ease-in forwards;
+}
+
+.turbo-entering {
+  animation: turbo-page-enter 180ms ease-out forwards;
+}
+
+/* ── Turbo Morph transitions ── */
+
+@keyframes turbo-morph-fade {
+  from { opacity: 0.6; }
+  to   { opacity: 1; }
+}
+
+[data-turbo-variant="morph"] {
+  animation: turbo-morph-fade 150ms ease-out;
+}
+
+/* ── Respect reduced motion preference ── */
+
+@media (prefers-reduced-motion: reduce) {
+  .turbo-exiting,
+  .turbo-entering,
+  [data-turbo-variant="morph"] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   color: var(--color-text-muted);
@@ -121,4 +164,90 @@
   float: left;
   height: 0;
   pointer-events: none;
+}
+
+/* ── Reading Experience Styles ── */
+
+/* Reading content typography */
+.font-reading {
+  font-family: "Cormorant Garamond", ui-serif, Georgia, serif;
+  font-size: 1.125rem;
+  line-height: 1.8;
+  letter-spacing: 0.01em;
+}
+
+.font-reading p {
+  margin-bottom: 1.5em;
+}
+
+.font-reading h1,
+.font-reading h2,
+.font-reading h3 {
+  font-family: "Playfair Display", ui-serif, Georgia, serif;
+  margin-top: 2em;
+  margin-bottom: 0.75em;
+  line-height: 1.3;
+}
+
+.font-reading blockquote {
+  border-left: 3px solid var(--color-primary);
+  padding-left: 1.5em;
+  margin: 1.5em 0;
+  font-style: italic;
+  color: var(--color-text-secondary);
+}
+
+/* Chapter index panel transitions */
+[data-chapter-index-target="panel"] {
+  will-change: transform;
+}
+
+/* Focus styles for accessibility */
+[data-chapter-index-target="panel"] a:focus-visible,
+[data-reading-target="previousButton"]:focus-visible,
+[data-reading-target="nextButton"]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+/* Progress bar animation */
+.progress-bar-animated {
+  transition: width 0.3s ease-in-out;
+}
+
+/* Mobile reading optimizations */
+@media (max-width: 640px) {
+  .font-reading {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .font-reading h1 {
+    font-size: 1.75rem;
+  }
+
+  .font-reading h2 {
+    font-size: 1.5rem;
+  }
+
+  .font-reading h3 {
+    font-size: 1.25rem;
+  }
+}
+
+/* Print styles for reading */
+@media print {
+  [data-reading-target="previousButton"],
+  [data-reading-target="nextButton"],
+  header,
+  aside,
+  nav {
+    display: none !important;
+  }
+
+  .font-reading {
+    font-size: 12pt;
+    line-height: 1.5;
+  }
 }

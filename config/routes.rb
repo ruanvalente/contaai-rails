@@ -33,6 +33,8 @@ Rails.application.routes.draw do
     resources :chapters, only: [ :index, :show, :create, :update, :destroy ] do
       patch :reorder, on: :collection
     end
+
+    resource :reading_progress, only: [ :update ]
   end
 
   # Search

@@ -114,7 +114,7 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
   test "publish (HTML) redirects with a notice" do
     sign_in @author
     patch publish_book_path(@draft_book)
-    assert_redirected_to book_path(@draft_book)
+    assert_response :ok
     assert_equal "Livro publicado com sucesso.", flash[:notice]
   end
 
@@ -136,7 +136,7 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
   test "unpublish returns the book to draft" do
     sign_in @author
     patch unpublish_book_path(@published_book)
-    assert_redirected_to book_path(@published_book)
+    assert_response :ok
     @published_book.reload
     assert @published_book.draft?
     assert_nil @published_book.published_at
@@ -166,5 +166,42 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
     get read_book_path(@published_book)
     assert_response :success
     assert_includes response.body, "Hello world"
+  end
+
+  test "read with chapter_id shows specific chapter" do
+    sign_in @reader
+    get read_book_path(@published_book, chapter_id: chapters(:published_chapter).id)
+    assert_response :success
+    assert_includes response.body, "Capítulo 1"
+  end
+
+  test "read with chapter_index shows chapter at index" do
+    sign_in @reader
+    get read_book_path(@published_book, chapter_index: 0)
+    assert_response :success
+    assert_includes response.body, "Hello world"
+  end
+
+  test "read creates reading progress for new book" do
+    sign_in @reader
+    ReadingProgress.where(user: @reader, book: @published_book).destroy_all
+
+    assert_difference("ReadingProgress.count", 1) do
+      get read_book_path(@published_book)
+    end
+  end
+
+  test "read redirects when book has no chapters" do
+    sign_in @reader
+    get read_book_path(@other_book)
+    assert_redirected_to book_path(@other_book)
+    assert_equal "Este livro não possui capítulos ainda.", flash[:alert]
+  end
+
+  test "read shows chapter navigation" do
+    sign_in @reader
+    get read_book_path(@published_book)
+    assert_response :success
+    assert_includes response.body, "Capítulo"
   end
 end

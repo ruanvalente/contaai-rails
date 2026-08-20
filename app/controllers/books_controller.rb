@@ -16,7 +16,7 @@ class BooksController < ApplicationController
   def create
     @book = current_user.books.build(book_params)
     if @book.save
-      redirect_to @book, notice: "Livro criado com sucesso."
+      redirect_to @book, notice: "Livro criado com sucesso.", status: :see_other
     else
       render :new, status: :unprocessable_entity
     end
@@ -30,7 +30,7 @@ class BooksController < ApplicationController
     authorize_book_owner! or return
     handle_cover_removal
     if @book.update(book_params)
-      redirect_to @book, notice: "Livro atualizado com sucesso."
+      redirect_to @book, notice: "Livro atualizado com sucesso.", status: :see_other
     else
       render :edit, status: :unprocessable_entity
     end
@@ -40,7 +40,7 @@ class BooksController < ApplicationController
     authorize_book_owner! or return
     @book.destroy
     respond_to do |f|
-      f.html { redirect_to dashboard_path, notice: "Livro excluído com sucesso." }
+      f.html { redirect_to dashboard_path, notice: "Livro excluído com sucesso.", status: :see_other }
       f.json { head :no_content }
     end
   end
@@ -86,7 +86,7 @@ class BooksController < ApplicationController
 
     if @book.update(status: :published, published_at: Time.current, content: full_content)
       respond_to do |f|
-        f.html { redirect_to @book, notice: "Livro publicado com sucesso." }
+        f.html { turbo_morph_refresh notice: "Livro publicado com sucesso." }
         f.json { render json: { success: true, published_at: @book.published_at } }
       end
     else
@@ -107,7 +107,7 @@ class BooksController < ApplicationController
     end
 
     if @book.update(status: :draft, published_at: nil, content: nil)
-      redirect_to @book, notice: "Livro despublicado. Voltando para rascunho."
+      turbo_morph_refresh notice: "Livro despublicado. Voltando para rascunho."
     else
       redirect_to @book, alert: "Não foi possível despublicar o livro."
     end
@@ -120,9 +120,49 @@ class BooksController < ApplicationController
   end
 
   def read
+    @chapters = @book.chapters.ordered
+
+    if @chapters.empty?
+      redirect_to @book, alert: "Este livro não possui capítulos ainda."
+      return
+    end
+
+    if user_signed_in?
+      @reading_progress = current_user.reading_progresses.find_or_create_by(book: @book) do |rp|
+        rp.status = :reading
+        rp.started_at = Time.current
+        rp.last_read_at = Time.current
+      end
+
+      @active_chapter = resolve_chapter(default: @reading_progress.current_chapter)
+
+      @reading_progress.update(
+        current_chapter: @active_chapter,
+        last_read_at: Time.current
+      )
+      @reading_progress.recalculate_percentage!
+    else
+      @active_chapter = resolve_chapter
+      @reading_progress = nil
+    end
+
+    @current_index = @chapters.index(@active_chapter) || 0
+    @previous_chapter = @current_index > 0 ? @chapters[@current_index - 1] : nil
+    @next_chapter = @current_index < @chapters.size - 1 ? @chapters[@current_index + 1] : nil
   end
 
   private
+
+  def resolve_chapter(default: nil)
+    if params[:chapter_id].present?
+      @chapters.find_by(id: params[:chapter_id]) || default || @chapters.first
+    elsif params[:chapter_index].present?
+      index = params[:chapter_index].to_i
+      @chapters[index] || default || @chapters.first
+    else
+      default || @chapters.first
+    end
+  end
 
   def set_book
     @book = Book.find(params[:id])

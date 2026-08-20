@@ -16,7 +16,9 @@
   </head>
   <body class="font-sans bg-bg-main text-text-primary antialiased">
     <%= render "shared/flash" %>
-    <%= yield %>
+    <div style="view-transition-name: main-content">
+      <%= yield %>
+    </div>
     <%= render "shared/confirm_modal" %>
   </body>
 </html>
