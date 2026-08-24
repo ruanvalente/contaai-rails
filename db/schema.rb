@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_20_171533) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_21_121955) do
   create_schema "extensions"
 
   # These are extensions that must be enabled in order to support this database
@@ -58,6 +58,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_20_171533) do
     t.index ["follower_id", "author_id"], name: "index_author_follows_on_follower_id_and_author_id", unique: true
     t.index ["follower_id"], name: "index_author_follows_on_follower_id"
     t.check_constraint "follower_id <> author_id", name: "author_follows_no_self_follow"
+  end
+
+  create_table "public.book_imports", force: :cascade do |t|
+    t.bigint "book_id", null: false
+    t.datetime "created_at", null: false
+    t.text "error_message"
+    t.string "filename", null: false
+    t.jsonb "parsed_data", default: {}, null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["book_id"], name: "index_book_imports_on_book_id"
+    t.index ["status"], name: "index_book_imports_on_status"
+    t.index ["user_id"], name: "index_book_imports_on_user_id"
   end
 
   create_table "public.books", force: :cascade do |t|
@@ -322,6 +336,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_20_171533) do
   add_foreign_key "public.active_storage_variant_records", "public.active_storage_blobs", column: "blob_id"
   add_foreign_key "public.author_follows", "public.users", column: "author_id"
   add_foreign_key "public.author_follows", "public.users", column: "follower_id"
+  add_foreign_key "public.book_imports", "public.books"
+  add_foreign_key "public.book_imports", "public.users"
   add_foreign_key "public.books", "public.users"
   add_foreign_key "public.chapters", "public.books"
   add_foreign_key "public.favorites", "public.books"

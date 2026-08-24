@@ -6,6 +6,7 @@ class Book < ApplicationRecord
   has_one_attached :cover_image
 
   has_many :chapters, -> { order(position: :asc) }, dependent: :destroy
+  has_many :book_imports, dependent: :destroy
   has_many :ratings, dependent: :destroy
   has_many :favorites, dependent: :destroy
   has_many :reading_progresses, dependent: :destroy

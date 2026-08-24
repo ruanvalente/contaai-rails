@@ -1,0 +1,48 @@
+<% chapter_fields ||= nil %>
+<% needs_review = chapter_fields.present? && chapter_fields["confidence"].to_f < ChapterImporter::REVIEW_THRESHOLD %>
+
+<div class="bg-bg-card rounded-xl border <%= "border-amber-300 bg-amber-50/50" if needs_review %> p-4"
+     data-import-preview-target="row">
+  <div class="flex items-center gap-2 mb-3">
+    <span class="row-number text-sm font-medium text-text-muted w-6 shrink-0" aria-hidden="true"></span>
+    <% if needs_review %>
+      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+        Verificar título
+      </span>
+    <% end %>
+    <div class="flex-1"></div>
+    <button type="button"
+            data-action="click->import-preview#moveUp"
+            class="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-border-light transition-colors"
+            aria-label="Mover capítulo para cima">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg>
+    </button>
+    <button type="button"
+            data-action="click->import-preview#moveDown"
+            class="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-border-light transition-colors"
+            aria-label="Mover capítulo para baixo">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <button type="button"
+            data-action="click->import-preview#remove"
+            class="p-2 rounded-lg text-text-secondary hover:text-error transition-colors"
+            aria-label="Remover capítulo da importação">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+    </button>
+  </div>
+
+  <div class="space-y-3">
+    <input type="text"
+           name="book_import[chapters][][title]"
+           value="<%= chapter_fields ? chapter_fields["title"] : "" %>"
+           placeholder="Título do capítulo"
+           autocomplete="off"
+           aria-label="Título do capítulo"
+           class="w-full px-3 py-2 text-sm font-medium border border-border-light rounded-lg focus:ring-2 focus:ring-[#8B7355]/20 focus:border-[#8B7355] transition-colors">
+    <textarea name="book_import[chapters][][content]"
+              rows="8"
+              placeholder="Conteúdo do capítulo. Separe parágrafos com uma linha em branco."
+              aria-label="Conteúdo do capítulo"
+              class="w-full px-3 py-2 text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-[#8B7355]/20 focus:border-[#8B7355] transition-colors resize-y leading-relaxed"><%= chapter_fields ? strip_tags(chapter_fields["content"]).strip : "" %></textarea>
+  </div>
+</div>

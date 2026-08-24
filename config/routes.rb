@@ -34,6 +34,10 @@ Rails.application.routes.draw do
       patch :reorder, on: :collection
     end
 
+    resource :import, only: [ :new, :create, :show, :destroy ], controller: "book_imports" do
+      patch :confirm
+    end
+
     resource :reading_progress, only: [ :update ]
   end
 

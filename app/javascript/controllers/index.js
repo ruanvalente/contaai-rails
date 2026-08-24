@@ -37,6 +37,9 @@ application.register("flash", FlashController)
 import HelloController from "./hello_controller"
 application.register("hello", HelloController)
 
+import ImportPreviewController from "./import_preview_controller"
+application.register("import-preview", ImportPreviewController)
+
 import PasswordToggleController from "./password_toggle_controller"
 application.register("password-toggle", PasswordToggleController)
 

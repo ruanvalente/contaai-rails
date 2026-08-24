@@ -1,0 +1,43 @@
+<% content_for(:title, "Revisar importação - #{@book.title}") %>
+
+<div class="max-w-3xl mx-auto" data-controller="import-preview">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
+    <h1 class="text-2xl font-serif font-bold text-text-primary">Revisar importação</h1>
+    <p class="text-sm text-text-secondary"
+       data-import-preview-target="count"
+       aria-live="polite">
+      <%= @book_import.parsed_chapters.size %> capítulos encontrados
+    </p>
+  </div>
+  <p class="text-sm text-text-secondary mb-6">
+    Revise, edite, reordene ou remova os capítulos antes de adicioná-los ao livro
+    <span class="font-medium"><%= @book.title %></span>. Nada é salvo até você confirmar.
+  </p>
+
+  <template data-import-preview-target="template">
+    <%= render "chapter_fields", chapter_fields: nil, index: "NEW" %>
+  </template>
+
+  <%= form_with url: confirm_book_import_path(@book), method: :patch do %>
+    <div class="space-y-4" data-import-preview-target="rows">
+      <% @book_import.parsed_chapters.each_with_index do |chapter, index| %>
+        <%= render "chapter_fields", chapter_fields: chapter, index: index %>
+      <% end %>
+    </div>
+
+    <button type="button"
+            data-action="click->import-preview#add"
+            class="w-full py-3 border-2 border-dashed border-border rounded-xl text-sm font-medium text-[#8B7355] hover:bg-[#C2A47E]/5 hover:border-[#8B7355] transition-colors">
+      + Adicionar capítulo em branco
+    </button>
+
+    <div class="sticky bottom-0 flex items-center justify-between gap-4 pt-4 pb-6 bg-bg-page">
+      <%= link_to "Cancelar", book_import_path(@book),
+                  data: { turbo_method: :delete },
+                  class: "px-6 py-2.5 text-text-secondary hover:text-text-primary transition-colors" %>
+      <%= submit_tag "Confirmar importação",
+                     data: { turbo_submits_with: "Confirmando..." },
+                     class: "px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium cursor-pointer" %>
+    </div>
+  <% end %>
+</div>
