@@ -1,0 +1,29 @@
+ready_import:
+  book: draft_book
+  user: author
+  filename: livro.txt
+  status: ready
+  parsed_data:
+    - title: "Capítulo 1"
+      content: "<p>Conteúdo</p>"
+      confidence: 0.95
+    - title: "1 — Revisar"
+      content: "<p>Duvidoso</p>"
+      confidence: 0.6
+
+confirmed_import:
+  book: draft_book
+  user: author
+  filename: outro.txt
+  status: confirmed
+  parsed_data:
+    - title: "Capítulo 1"
+      content: "<p>Conteúdo</p>"
+      confidence: 0.95
+
+pending_import:
+  book: draft_book
+  user: author
+  filename: pendente.txt
+  status: pending
+  parsed_data: {}

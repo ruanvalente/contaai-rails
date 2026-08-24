@@ -1,0 +1,51 @@
+<% content_for(:title, "Importar texto - #{@book.title}") %>
+
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-2xl font-serif font-bold text-text-primary mb-2">Importar texto</h1>
+  <p class="text-sm text-text-secondary mb-6">
+    Envie um arquivo de texto com seus capítulos. Usamos marcadores como
+    <span class="font-medium">"Capítulo 1"</span>, <span class="font-medium">"CAPÍTULO II"</span> ou
+    <span class="font-medium">"Chapter 3"</span> para identificar cada capítulo.
+  </p>
+
+  <div class="bg-bg-card rounded-xl border border-border-light shadow-sm p-6">
+    <%= form_with url: book_import_path(@book), method: :post, local: true,
+                  html: { multipart: true }, class: "space-y-6" do |f| %>
+      <div>
+        <%= f.label :file, "Arquivo de texto", class: "block text-sm font-medium text-text-primary mb-2" %>
+        <%= f.file_field :file,
+                         required: true,
+                         accept: ".txt,.md,text/plain,text/markdown",
+                         class: "block w-full text-sm text-text-secondary
+                                 file:mr-4 file:px-4 file:py-2 file:rounded-lg
+                                 file:border-0 file:text-sm file:font-medium
+                                 file:bg-[#8B7355] file:text-white
+                                 hover:file:bg-[#7A6548] file:cursor-pointer
+                                 cursor-pointer" %>
+        <p class="mt-2 text-xs text-text-muted">
+          Formatos aceitos: .txt e .md · Codificação UTF-8 · Tamanho máximo de 5 MB
+        </p>
+      </div>
+
+      <div class="flex items-center gap-4 pt-4">
+        <%= f.submit "Analisar arquivo",
+                     data: { turbo_submits_with: "Analisando..." },
+                     class: "px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium cursor-pointer" %>
+        <%= link_to "Cancelar", write_book_path(@book), class: "px-6 py-2.5 text-text-secondary hover:text-text-primary transition-colors" %>
+      </div>
+    <% end %>
+  </div>
+
+  <details class="mt-6 bg-bg-card rounded-xl border border-border-light p-4">
+    <summary class="text-sm font-medium text-text-primary cursor-pointer">Exemplo de formato esperado</summary>
+    <pre class="mt-3 text-xs text-text-secondary whitespace-pre-wrap font-mono bg-bg-sec rounded-lg p-4"><code>Capítulo 1
+A chegada
+
+Era uma noite escura na floresta...
+
+Capítulo 2
+A descoberta
+
+João caminhou entre as árvores...</code></pre>
+  </details>
+</div>

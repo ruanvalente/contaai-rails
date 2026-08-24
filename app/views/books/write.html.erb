@@ -70,7 +70,12 @@
            class="invisible lg:visible fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col bg-[#F5E6D3] border-r border-border-light transition-transform duration-200 ease-in-out lg:static lg:translate-x-0 lg:z-auto">
       <div class="flex items-center justify-between px-4 py-3 border-b border-border-light">
         <h2 class="text-sm font-medium text-text-primary">Capítulos</h2>
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-2">
+          <%= link_to new_book_import_path(@book),
+                      class: "flex items-center gap-1 text-xs text-[#8B7355] hover:text-[#7A6548] font-medium transition-colors" do %>
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            Importar
+          <% end %>
           <button data-action="click->chapter-panel#addChapter"
                   data-editor-sidebar-target="addButton"
                   class="flex items-center gap-1 text-xs text-[#8B7355] hover:text-[#7A6548] font-medium transition-colors">
